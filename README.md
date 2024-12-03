@@ -1,0 +1,1 @@
+Bot for VPN service, using with AmneziaWG manager.
