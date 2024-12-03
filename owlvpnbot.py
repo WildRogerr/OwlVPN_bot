@@ -1,9 +1,10 @@
 import telebot
 from telebot import types
-import owlvpnbackend
+from config import TOKEN
+import owlvpnbackend as owlvpnbackend
 from owlvpnbackend import managebot
 
-bot = telebot.TeleBot('')
+bot = telebot.TeleBot(TOKEN)
 
 messages_to_delete = {}
 
@@ -40,7 +41,6 @@ def support(message):
 @bot.message_handler(commands=['admin'])
 @admin_only
 def admin_panel(message):
-    bot.reply_to(message, "Добро пожаловать в админ-панель!")
     markup = types.ReplyKeyboardMarkup()
     btncreate = types.KeyboardButton('⚙️ Получить мой файл конфигурации')
     markup.row(btncreate)
