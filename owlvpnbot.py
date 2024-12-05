@@ -7,12 +7,13 @@ import logging
 from config import TOKEN
 from config import ADMIN
 from config import LINKSUPPORT
-from config import TARIF
+from config import TARIFF
 from config import PROMOCODE
-from config import PROMOTARIF
+from config import PROMOTARIFF
 from asyncio import sleep
 import app.keyboards as kb
 from app.owlvpnbackend import managebot
+import app.owlvpndatabase as owlvpndatabase
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
@@ -38,7 +39,7 @@ async def help(message: Message):
     
 @dp.message(Command('support'))
 async def support(message: Message): 
-    await message.answer(f'Напишите ваш вопрос или опишите проблему по слудующей ссылке: {LINKSUPPORT}',parse_mode='html')
+    await message.answer(f'Напишите ваш вопрос или опишите проблему по слудующей ссылке: {LINKSUPPORT}. Прежде чем написать в поддержку посмотрите пожалуйста раздел "F.A.Q.", возможно там уже есть решение вашего вопроса.',parse_mode='html')
 
 @dp.message(Command('admin'))
 async def admin_panel(message: Message):
@@ -97,7 +98,7 @@ async def text_handler2(message: Message):
                 await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
             except Exception as e:
                 print(f"Не удалось удалить сообщение: {e}")
-        new_message = await message.answer('Выберете тариф с помощью кнопки "Выбрать тариф"\nЕсли у вас есть промокод, нажмите кнопку "Ввести промокод"',reply_markup=kb.chosetarifkeys)
+        new_message = await message.answer('Выберете тариф с помощью кнопки "Выбрать тариф"\nЕсли у вас есть промокод, нажмите кнопку "Ввести промокод"',reply_markup=kb.chosetariffkeys)
         data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == '💳 Произвести оплату')
@@ -145,7 +146,7 @@ async def text_handler6(message: Message):
                 await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
             except Exception as e:
                 print(f"Не удалось удалить сообщение: {e}")
-        new_message = await message.answer(f'Напишите ваш вопрос или опишите проблему по слудующей ссылке: {LINKSUPPORT}',parse_mode='html')
+        new_message = await message.answer(f'Напишите ваш вопрос или опишите проблему по слудующей ссылке: {LINKSUPPORT}. Прежде чем написать в поддержку посмотрите пожалуйста раздел "F.A.Q.", возможно там уже есть решение вашего вопроса.',parse_mode='html')
         data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == PROMOCODE)
@@ -156,7 +157,7 @@ async def text_handler7(message: Message):
                 await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
             except Exception as e:
                 print(f"Не удалось удалить сообщение: {e}")
-        new_message = await message.answer('Промокод принят! Выберите тариф:',reply_markup=kb.chosepromotarifkey)
+        new_message = await message.answer('Промокод принят! Выберите тариф:',reply_markup=kb.chosepromotariffkey)
         data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == 'Выполнить рассылку сообщения всем пользователям ↗️')
@@ -183,6 +184,7 @@ async def text_handler9(message: Message):
 
 @dp.callback_query(F.data == 'startvpn')
 async def callback(callback: CallbackQuery):
+    
     await callback.message.delete()
     await callback.message.answer('''Выберете тариф с помощью кнопки "Выбрать тариф"\nЕсли у вас есть промокод, нажмите кнопку "Ввести промокод"''', reply_markup=kb.startkeys)
     
@@ -220,72 +222,72 @@ async def callback(callback: CallbackQuery):
     new_message = await bot.send_message(callback.message.chat.id, 'Введите промокод и отправьте сообщение:',reply_markup=kb.backbtn)
     data.messages_to_delete[callback.message.chat.id] = new_message.message_id
 
-@dp.callback_query(F.data == 'choosetarif')
+@dp.callback_query(F.data == 'choosetariff')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
-    await callback.message.answer(TARIF,reply_markup=kb.tarifkeys)
+    await callback.message.answer(TARIFF, parse_mode='html', reply_markup=kb.tariffkeys)
 
-@dp.callback_query(F.data == 'choosepromotarif')
+@dp.callback_query(F.data == 'choosepromotariff')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
-    await callback.message.answer(PROMOTARIF,reply_markup=kb.promotarifkeys)
+    await callback.message.answer(PROMOTARIFF,reply_markup=kb.promotariffkeys)
 
-@dp.callback_query(F.data == 'changetarif')
+@dp.callback_query(F.data == 'changetariff')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
-    await callback.message.answer(TARIF,reply_markup=kb.changetarifkeys)
+    await callback.message.answer(TARIFF,reply_markup=kb.changetariffkeys)
 
-@dp.callback_query(F.data == 'changepromotarif')
+@dp.callback_query(F.data == 'changepromotariff')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
-    await callback.message.answer(PROMOTARIF,reply_markup=kb.chpromotarifkeys)
+    await callback.message.answer(PROMOTARIFF,reply_markup=kb.chpromotariffkeys)
 
-@dp.callback_query(F.data == 'tarif1')
-async def callback(callback: CallbackQuery):
-    await callback.message.delete()
-    await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
-
-@dp.callback_query(F.data == 'tarif2')
+@dp.callback_query(F.data == 'tariff1')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
-@dp.callback_query(F.data == 'tarif3')
+@dp.callback_query(F.data == 'tariff2')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
-@dp.callback_query(F.data == 'tarif4')
+@dp.callback_query(F.data == 'tariff3')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
-@dp.callback_query(F.data == 'tarif5')
+@dp.callback_query(F.data == 'tariff4')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
-@dp.callback_query(F.data == 'chtarif1')
+@dp.callback_query(F.data == 'tariff5')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
+
+@dp.callback_query(F.data == 'chtariff1')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer('Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
 
-@dp.callback_query(F.data == 'chtarif2')
+@dp.callback_query(F.data == 'chtariff2')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer('Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
 
-@dp.callback_query(F.data == 'chtarif3')
+@dp.callback_query(F.data == 'chtariff3')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer('Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
 
-@dp.callback_query(F.data == 'chtarif4')
+@dp.callback_query(F.data == 'chtariff4')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer('Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
 
-@dp.callback_query(F.data == 'chtarif5')
+@dp.callback_query(F.data == 'chtariff5')
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer('Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')

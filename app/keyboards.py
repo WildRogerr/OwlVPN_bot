@@ -26,36 +26,36 @@ connectkeys = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 startkeys = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='✔️ Выбрать тариф', callback_data='choosetarif'),InlineKeyboardButton(text='➕ Ввести промокод', callback_data='promocode')]
+    [InlineKeyboardButton(text='✔️ Выбрать тариф', callback_data='choosetariff'),InlineKeyboardButton(text='➕ Ввести промокод', callback_data='promocode')]
 ])
 
 backbtn = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='🔙', callback_data='startvpn')]
 ])
 
-tarifkeys = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='1 аккаунт', callback_data='tarif1'),InlineKeyboardButton(text='2 аккаунта', callback_data='tarif2'),InlineKeyboardButton(text='3 аккаунта', callback_data='tarif3')],
+tariffkeys = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='1 аккаунт', callback_data='tariff1'),InlineKeyboardButton(text='2 аккаунта', callback_data='tariff2'),InlineKeyboardButton(text='3 аккаунта', callback_data='tariff3')],
     [InlineKeyboardButton(text='🔙', callback_data='startvpn')]
 ])
 
-changetarifkeys = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='1 аккаунт', callback_data='chtarif1'),InlineKeyboardButton(text='2 аккаунта', callback_data='chtarif2'),InlineKeyboardButton(text='3 аккаунта', callback_data='chtarif3')],
+changetariffkeys = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='1 аккаунт', callback_data='chtariff1'),InlineKeyboardButton(text='2 аккаунта', callback_data='chtariff2'),InlineKeyboardButton(text='3 аккаунта', callback_data='chtariff3')],
     [InlineKeyboardButton(text='🔙', callback_data='startvpn')]
 ]) 
 
-promotarifkeys = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='1 аккаунт', callback_data='tarif4'),InlineKeyboardButton(text='2 аккаунта', callback_data='tarif5')],
+promotariffkeys = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='1 аккаунт', callback_data='tariff4'),InlineKeyboardButton(text='2 аккаунта', callback_data='tariff5')],
     [InlineKeyboardButton(text='🔙', callback_data='startvpn')]
 ])
 
-chpromotarifkeys = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='1 аккаунт', callback_data='chtarif4'),InlineKeyboardButton(text='2 аккаунта', callback_data='chtarif5')],
+chpromotariffkeys = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='1 аккаунт', callback_data='chtariff4'),InlineKeyboardButton(text='2 аккаунта', callback_data='chtariff5')],
     [InlineKeyboardButton(text='🔙', callback_data='startvpn')]
 ])
 
 paykeys = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='💳 Оплатить', callback_data='pay')],
-    [InlineKeyboardButton(text='🔙', callback_data='choosetarif')]
+    [InlineKeyboardButton(text='🔙', callback_data='choosetariff')]
 ])
 
 resumekey = InlineKeyboardMarkup(inline_keyboard=[
@@ -67,11 +67,11 @@ paykey = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='🔙', callback_data='mainchat')]
 ])
 
-chosepromotarifkey = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='✔️ Выбрать тариф', callback_data='choosepromotarif')]
+chosepromotariffkey = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='✔️ Выбрать тариф', callback_data='choosepromotariff')]
 ])
 
-chosetarifkeys = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='✔️ Выбрать тариф', callback_data='changetarif')],
+chosetariffkeys = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='✔️ Выбрать тариф', callback_data='changetariff')],
     [InlineKeyboardButton(text='🔙', callback_data='mainchat')]
 ])
