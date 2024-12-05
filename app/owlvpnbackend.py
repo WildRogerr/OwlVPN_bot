@@ -1,5 +1,5 @@
 import subprocess
-import owlvpndatabase
+import app.owlvpndatabase as owlvpndatabase
 
 class managebot:
     def __init__(self):

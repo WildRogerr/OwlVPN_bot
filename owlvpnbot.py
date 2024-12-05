@@ -1,315 +1,308 @@
-import telebot
-from telebot import types
+from aiogram import Bot, Dispatcher, F
+from aiogram.filters import Command
+from aiogram.types import Message, CallbackQuery
+from aiogram.types.input_file import FSInputFile
+import asyncio
+import logging
 from config import TOKEN
-import owlvpnbackend as owlvpnbackend
-from owlvpnbackend import managebot
+from config import ADMIN
+from config import LINKSUPPORT
+from config import TARIF
+from config import PROMOCODE
+from config import PROMOTARIF
+from asyncio import sleep
+import app.keyboards as kb
+from app.owlvpnbackend import managebot
 
-bot = telebot.TeleBot(TOKEN)
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
 
-messages_to_delete = {}
+async def main():
+    await dp.start_polling(bot)
 
-admin_ids = [1894714376]
+class data:
+    messages_to_delete = {}
+    user_ids = [ADMIN]#Временно
 
-user_ids = [1894714376]
-
-def admin_only(func):
-    def wrapper(message):
-        if message.chat.id in admin_ids:
-            return func(message)
-        else:
-            bot.reply_to(message.chat.id, "У вас нет доступа к этой команде.")
-    return wrapper
-
-@bot.message_handler(commands=['start'])
-def main(message):
+@dp.message(Command('start'))
+async def start(message: Message):
     with open('./txt/welcome.txt','r',encoding="utf-8") as file:
         welcome = file.read()
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton('✅ Подключить VPN', callback_data='startvpn'))
-    bot.send_message(message.chat.id, welcome, parse_mode='html', reply_markup=markup)
+    await message.answer(welcome, parse_mode='html', reply_markup=kb.connectkeys)
 
-@bot.message_handler(commands=['help'])
-def help(message): 
+@dp.message(Command('help'))
+async def help(message: Message): 
     with open('./txt/help.txt','r',encoding="utf-8") as file:
         help = file.read()
-        bot.send_message(message.chat.id, help, parse_mode='html')
+        await message.answer(help, parse_mode='html')
     
-@bot.message_handler(commands=['support'])
-def support(message): 
-    1
+@dp.message(Command('support'))
+async def support(message: Message): 
+    await message.answer(f'Напишите ваш вопрос или опишите проблему по слудующей ссылке: {LINKSUPPORT}',parse_mode='html')
 
-@bot.message_handler(commands=['admin'])
-@admin_only
-def admin_panel(message):
-    markup = types.ReplyKeyboardMarkup()
-    btncreate = types.KeyboardButton('⚙️ Получить мой файл конфигурации')
-    markup.row(btncreate)
-    btnbroacast = types.KeyboardButton('Выполнить рассылку сообщения всем пользователям ↗️')
-    markup.row(btnbroacast)
-    btnhelp = types.KeyboardButton('❔ Помощь')
-    btnfaq = types.KeyboardButton('💬 F.A.Q.')
-    markup.row(btnhelp, btnfaq)
-    btnsup = types.KeyboardButton('✉️ Написать обращение')
-    markup.row(btnsup)
-    bot.send_message(message.chat.id, 'Добро пожаловать в админ-панель!', reply_markup=markup)
+@dp.message(Command('admin'))
+async def admin_panel(message: Message):
+    if message.from_user.id == ADMIN:
+        await message.answer('Добро пожаловать в режим администратора!', reply_markup=kb.adminkeyboard)
+    else:
+        message.answer("У вас нет прав на выполнение этой команды.")
 
-@bot.message_handler(commands=['broadcast'])
-@admin_only
-def broadcast(message):
-    # Получаем текст после команды
-    text = message.text[len("/broadcast "):]
-    
-    if not text:
-        bot.reply_to(message, "Пожалуйста, введите текст для рассылки после команды.")
+@dp.message(Command('broadcast'))
+async def broadcast(message: Message):
+    if message.from_user.id != ADMIN:
+        await message.answer("У вас нет прав на выполнение этой команды.")
         return
 
-    # Рассылка сообщений всем пользователям
-    for user_id in user_ids:
-        try:
-            bot.send_message(user_id, text)
-        except Exception as e:
-            print(f"Не удалось отправить сообщение пользователю {user_id}: {e}")
+    # Проверяем, что администратор указал текст для рассылки
+    if len(message.text.split()) < 2:
+        await message.answer('Пожалуйста, укажите текст для рассылки:\n"/broadcast Текст сообщения"')
+        return
     
-    bot.reply_to(message, "Рассылка завершена.")
+    text = message.text.split(maxsplit=1)[1]
 
-@bot.message_handler(content_types=["text"])
-def text_handler(message):
-    if message.text == '⚙️ Получить мой файл конфигурации':
-        bot.send_message(message.from_user.id, 'Ваш конфигурационный файл:')
+    # Получаем всех пользователей из базы данных
+    #cursor.execute("SELECT id FROM users")
+    #users = cursor.fetchall()
 
-    elif message.text == '💳 Произвести оплату':
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton('💳 Оплатить', callback_data='pay2'))
-        bot.send_message(message.from_user.id, "Нажмите кнопку оплатить, чтобы произвести оплату:", reply_markup=markup)
+    successful = 0
+    failed = 0
 
-    elif message.text == '❔ Помощь':
+    for user_id in data.user_ids:
+        try:
+            await bot.send_message(user_id, text)
+            successful += 1
+            await sleep(0.1)  # Задержка для предотвращения лимитов Telegram
+        except Exception as e:
+            logging.error(f"Не удалось отправить сообщение пользователю {user_id}: {e}")
+            failed += 1
+
+    await message.answer(f"Рассылка завершена.\nУспешно: {successful}, Не удалось: {failed}.")
+
+@dp.message(F.text == '⚙️ Получить файл конфигурации')
+async def text_handler1(message: Message):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Не удалось удалить сообщение: {e}")
+        new_message = await message.answer(f'Ваш тариф:{1} Ваш конфигурационный файл(ы): {2}')
+        data.messages_to_delete[message.chat.id] = new_message.message_id
+
+@dp.message(F.text == '✔️ Сменить тариф')
+async def text_handler2(message: Message):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Не удалось удалить сообщение: {e}")
+        new_message = await message.answer('Выберете тариф с помощью кнопки "Выбрать тариф"\nЕсли у вас есть промокод, нажмите кнопку "Ввести промокод"',reply_markup=kb.chosetarifkeys)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
+
+@dp.message(F.text == '💳 Произвести оплату')
+async def text_handler3(message: Message):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Не удалось удалить сообщение: {e}")
+        new_message = await message.answer("Нажмите кнопку оплатить, чтобы произвести оплату:", reply_markup=kb.paykey)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
+
+@dp.message(F.text == '❔ Помощь')
+async def text_handler4(message: Message):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Не удалось удалить сообщение: {e}")
         with open('./txt/help.txt','r',encoding="utf-8") as file:
             help = file.read()
-            bot.send_message(message.from_user.id, help, parse_mode='html')
+            new_message = await message.answer(help, parse_mode='html')
+        data.messages_to_delete[message.chat.id] = new_message.message_id
 
-    elif message.text == '💬 F.A.Q.':
+@dp.message(F.text == '💬 F.A.Q.')
+async def text_handler5(message: Message):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Не удалось удалить сообщение: {e}")
         with open('./txt/faq.txt','r',encoding="utf-8") as file:
             faq = file.read()
-            bot.send_message(message.from_user.id, faq, parse_mode='html')
-        
-    elif message.text == '✉️ Написать обращение':
-        bot.send_message(message.from_user.id, 'Напишите в чём ваша проблема, ответ придёт в ближайшее время') 
+            new_message = await message.answer(faq, parse_mode='html')
+        data.messages_to_delete[message.chat.id] = new_message.message_id
 
-    elif message.text == 'XARDAS':
-        bot.delete_message(message.chat.id, message.message_id)
-        if message.chat.id in messages_to_delete:
-            msg_id = messages_to_delete[message.chat.id]
-            bot.delete_message(message.chat.id, msg_id)
-            del messages_to_delete[message.chat.id]
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton('✔️ Выбрать тариф', callback_data='choosepromotarif'))
-        bot.send_message(message.from_user.id, 'Промокод принят! Выберите тариф:',reply_markup=markup)
-        
-    elif message.text == '✔️ Сменить тариф':
-        bot.delete_message(message.chat.id, message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        btnchoose = types.InlineKeyboardButton('✔️ Выбрать тариф', callback_data='changetarif')
-        markup.row(btnchoose)
-        backbtn = types.InlineKeyboardButton('🔙', callback_data='mainchat')
-        markup.row(backbtn)
-        bot.send_message(message.from_user.id, '''Выберете тариф с помощью кнопки "Выбрать тариф" 
-Если у вас есть промокод, нажмите кнопку "Ввести промокод"''',reply_markup=markup)
-        
-    elif message.text == 'Выполнить рассылку сообщения всем пользователям ↗️':
-        bot.delete_message(message.chat.id, message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        backbtn = types.InlineKeyboardButton('🔙', callback_data='mainchat')
-        markup.row(backbtn)
-        bot.send_message(message.from_user.id, 'Для рассылки сообщения всем пользователям необходимо ввести команду "broadcast" через slash и текст сообщения после неё, после чего произвести отправку', reply_markup=markup)
-        
-    else:
-        bot.delete_message(message.chat.id, message.message_id)
-        bot.send_message(message.chat.id, 'Неизвестные данные.') 
+@dp.message(F.text == '✉️ Написать обращение')
+async def text_handler6(message: Message):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Не удалось удалить сообщение: {e}")
+        new_message = await message.answer(f'Напишите ваш вопрос или опишите проблему по слудующей ссылке: {LINKSUPPORT}',parse_mode='html')
+        data.messages_to_delete[message.chat.id] = new_message.message_id
 
-@bot.callback_query_handler(func=lambda callback: True)
-def callback_handler(callback):
-    if callback.data == 'startvpn':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        btnchoose = types.InlineKeyboardButton('✔️ Выбрать тариф', callback_data='choosetarif')
-        btnpromo = types.InlineKeyboardButton('➕ Ввести промокод', callback_data='promocode')
-        markup.row(btnchoose, btnpromo)
-        bot.send_message(callback.message.chat.id, '''Выберете тариф с помощью кнопки "Выбрать тариф" 
-Если у вас есть промокод, нажмите кнопку "Ввести промокод"''',reply_markup=markup)
+@dp.message(F.text == PROMOCODE)
+async def text_handler7(message: Message):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Не удалось удалить сообщение: {e}")
+        new_message = await message.answer('Промокод принят! Выберите тариф:',reply_markup=kb.chosepromotarifkey)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
+
+@dp.message(F.text == 'Выполнить рассылку сообщения всем пользователям ↗️')
+async def text_handler8(message: Message):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Не удалось удалить сообщение: {e}")
+        new_message = await message.answer('Для рассылки сообщения всем пользователям необходимо ввести команду "broadcast" через slash и текст сообщения после неё, после чего произвести отправку', reply_markup=kb.backbtn)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
+
+@dp.message(F.text != ['⚙️ Получить файл конфигурации',
+                       '✔️ Сменить тариф',
+                       '💳 Произвести оплату',
+                       '❔ Помощь',
+                       '💬 F.A.Q.',
+                       '✉️ Написать обращение',
+                       PROMOCODE,
+                       'Выполнить рассылку сообщения всем пользователям ↗️'])
+async def text_handler9(message: Message):
+        await message.answer('Неизвестные данные.')
+
+@dp.callback_query(F.data == 'startvpn')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('''Выберете тариф с помощью кнопки "Выбрать тариф"\nЕсли у вас есть промокод, нажмите кнопку "Ввести промокод"''', reply_markup=kb.startkeys)
     
-    elif callback.data == 'mainchat':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)   
-    elif callback.data == 'paymessage':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)   
-        bot.send_message(callback.message.chat.id, 'Оплата прошла успешно!')
+@dp.callback_query(F.data == 'mainchat')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
 
-    elif callback.data == 'keyboard':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.ReplyKeyboardMarkup()
-        btncreate = types.KeyboardButton('⚙️ Получить мой файл конфигурации')
-        btnchtarif = types.KeyboardButton('✔️ Сменить тариф')
-        markup.row(btncreate,btnchtarif)
-        btnpay = types.KeyboardButton('💳 Произвести оплату')
-        markup.row(btnpay)
-        btnhelp = types.KeyboardButton('❔ Помощь')
-        btnfaq = types.KeyboardButton('💬 F.A.Q.')
-        markup.row(btnhelp, btnfaq)
-        btnsup = types.KeyboardButton('✉️ Написать обращение')
-        markup.row(btnsup)
-        startphoto = open('./img/startphoto.jpg','rb')
-        bot.send_photo(callback.message.chat.id, startphoto)
-        with open('./txt/startmessage.txt','r',encoding="utf-8") as file:
+@dp.callback_query(F.data == 'paymessage')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Оплата прошла успешно!')
+
+@dp.callback_query(F.data == 'keyboard')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    startphoto = FSInputFile('./img/startphoto.jpg')
+    await bot.send_photo(chat_id=callback.message.chat.id,photo=startphoto)
+    with open('./txt/startmessage.txt','r',encoding="utf-8") as file:
             startmessage = file.read()
-        bot.send_message(callback.message.chat.id, startmessage, parse_mode='html', disable_web_page_preview=True, reply_markup=markup)
+    await callback.message.answer(startmessage, parse_mode='html', disable_web_page_preview=True, reply_markup=kb.mainkeyboard)
 
-    elif callback.data == '4f00f1ca6746ef1367011063d1385ae0304a2a54958c859949a1f38fbeb011a0':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.ReplyKeyboardMarkup()
-        btncreate = types.KeyboardButton('⚙️ Получить мой файл конфигурации')
-        markup.row(btncreate)
-        btnhelp = types.KeyboardButton('❔ Помощь')
-        btnfaq = types.KeyboardButton('💬 F.A.Q.')
-        markup.row(btnhelp, btnfaq)
-        btnsup = types.KeyboardButton('✉️ Написать обращение')
-        markup.row(btnsup)
-        bot.send_message(callback.message.chat.id, 'Режим администратора.', reply_markup=markup)
+@dp.callback_query(F.data == 'paymessage')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Оплата прошла успешно!')
 
-    elif callback.data == 'promocode':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        backbtn = types.InlineKeyboardButton('🔙', callback_data='startvpn')
-        markup.add(backbtn)
-        msg = bot.send_message(callback.message.chat.id, 'Введите промокод и отправьте сообщение:',reply_markup=markup)
-        if callback.message.chat.id not in messages_to_delete:
-            messages_to_delete[callback.message.chat.id] = []
-        messages_to_delete[callback.message.chat.id].extend([msg.message_id])
+@dp.callback_query(F.data == 'promocode')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    if callback.message.chat.id in data.messages_to_delete:
+        try:
+            await bot.delete_message(chat_id=callback.message.chat.id, message_id=data.messages_to_delete[callback.message.chat.id])
+        except Exception as e:
+            print(f"Не удалось удалить сообщение: {e}")
+    new_message = await bot.send_message(callback.message.chat.id, 'Введите промокод и отправьте сообщение:',reply_markup=kb.backbtn)
+    data.messages_to_delete[callback.message.chat.id] = new_message.message_id
 
-    elif callback.data == 'choosetarif':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        btn1acc = types.InlineKeyboardButton('1 аккаунт', callback_data='tarif1')
-        btn2acc = types.InlineKeyboardButton('2 аккаунта', callback_data='tarif2')
-        btn3acc = types.InlineKeyboardButton('3 аккаунта', callback_data='tarif3')
-        markup.row(btn1acc, btn2acc, btn3acc)
-        backbtn = types.InlineKeyboardButton('🔙', callback_data='startvpn')
-        markup.add(backbtn)
-        bot.send_message(callback.message.chat.id, '''1 аккаунт - 300 рублей
-                         
-2 аккаунта - 400 рублей
-                         
-3 аккаунта - 500 рублей''',reply_markup=markup)
+@dp.callback_query(F.data == 'choosetarif')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer(TARIF,reply_markup=kb.tarifkeys)
 
-    elif callback.data == 'choosepromotarif':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        btn1pracc = types.InlineKeyboardButton('1 аккаунт', callback_data='tarif4')
-        btn2pracc = types.InlineKeyboardButton('2 аккаунта', callback_data='tarif5')
-        markup.row(btn1pracc, btn2pracc)
-        backbtn = types.InlineKeyboardButton('🔙', callback_data='startvpn')
-        markup.add(backbtn)
-        bot.send_message(callback.message.chat.id, '''1 аккаунт на 2 устройства (для PC и смартфона) - 150 рублей 
-                         
-2 аккаунта, 1 на 2 устроства (для PC и смартфона) + 1 аккаунт для смартфона - 250 рублей''',reply_markup=markup)   
+@dp.callback_query(F.data == 'choosepromotarif')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer(PROMOTARIF,reply_markup=kb.promotarifkeys)
 
-    elif callback.data == 'tarif1':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton('💳 Оплатить',callback_data='pay'))
-        backbtn = types.InlineKeyboardButton('🔙', callback_data='choosetarif')
-        markup.add(backbtn)
-        bot.send_message(callback.message.chat.id, 'Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=markup)
+@dp.callback_query(F.data == 'changetarif')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer(TARIF,reply_markup=kb.changetarifkeys)
 
-    elif callback.data == 'tarif2':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton('💳 Оплатить',callback_data='pay'))
-        backbtn = types.InlineKeyboardButton('🔙', callback_data='choosetarif')
-        markup.add(backbtn)
-        bot.send_message(callback.message.chat.id, 'Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=markup)
+@dp.callback_query(F.data == 'changepromotarif')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer(PROMOTARIF,reply_markup=kb.chpromotarifkeys)
 
-    elif callback.data == 'tarif3':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton('💳 Оплатить',callback_data='pay'))
-        backbtn = types.InlineKeyboardButton('🔙', callback_data='choosetarif')
-        markup.add(backbtn)
-        bot.send_message(callback.message.chat.id, 'Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=markup)
+@dp.callback_query(F.data == 'tarif1')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
-    elif callback.data == 'tarif4':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton('💳 Оплатить',callback_data='pay'))
-        backbtn = types.InlineKeyboardButton('🔙', callback_data='choosepromotarif')
-        markup.add(backbtn)
-        bot.send_message(callback.message.chat.id, 'Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=markup)
+@dp.callback_query(F.data == 'tarif2')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
-    elif callback.data == 'tarif5':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton('💳 Оплатить',callback_data='pay'))
-        backbtn = types.InlineKeyboardButton('🔙', callback_data='choosepromotarif')
-        markup.add(backbtn)
-        bot.send_message(callback.message.chat.id, 'Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=markup)
+@dp.callback_query(F.data == 'tarif3')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
-    elif callback.data == 'changetarif':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        btn1acc = types.InlineKeyboardButton('1 аккаунт', callback_data='chtarif1')
-        btn2acc = types.InlineKeyboardButton('2 аккаунта', callback_data='chtarif2')
-        btn3acc = types.InlineKeyboardButton('3 аккаунта', callback_data='chtarif3')
-        markup.row(btn1acc, btn2acc, btn3acc)
-        backbtn = types.InlineKeyboardButton('🔙', callback_data='mainchat')
-        markup.add(backbtn)
-        bot.send_message(callback.message.chat.id, '''1 аккаунт - 300 рублей
-                         
-2 аккаунта - 400 рублей
-                         
-3 аккаунта - 500 рублей''',reply_markup=markup)
+@dp.callback_query(F.data == 'tarif4')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
-    elif callback.data == 'changepromotarif':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        btn1pracc = types.InlineKeyboardButton('1 аккаунт', callback_data='chtarif4')
-        btn2pracc = types.InlineKeyboardButton('2 аккаунта', callback_data='chtarif5')
-        markup.row(btn1pracc, btn2pracc)
-        backbtn = types.InlineKeyboardButton('🔙', callback_data='mainchat')
-        markup.add(backbtn)
-        bot.send_message(callback.message.chat.id, '''1 аккаунт на 2 устройства (для PC и смартфона) - 150 рублей 
-                         
-2 аккаунта, 1 на 2 устроства (для PC и смартфона) + 1 аккаунт для смартфона - 250 рублей''',reply_markup=markup)
+@dp.callback_query(F.data == 'tarif5')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
-    elif callback.data == 'chtarif1':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        bot.send_message(callback.message.chat.id, 'Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
+@dp.callback_query(F.data == 'chtarif1')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
 
-    elif callback.data == 'chtarif2':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        bot.send_message(callback.message.chat.id, 'Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
+@dp.callback_query(F.data == 'chtarif2')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
 
-    elif callback.data == 'chtarif3':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        bot.send_message(callback.message.chat.id, 'Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
+@dp.callback_query(F.data == 'chtarif3')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
 
-    elif callback.data == 'chtarif4':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        bot.send_message(callback.message.chat.id, 'Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
+@dp.callback_query(F.data == 'chtarif4')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
 
-    elif callback.data == 'chtarif5':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        bot.send_message(callback.message.chat.id, 'Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
+@dp.callback_query(F.data == 'chtarif5')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату"')
 
-    elif callback.data == 'pay':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton('▶️ Продолжить',callback_data='keyboard'))
-        bot.send_message(callback.message.chat.id, 'Оплата прошла успешно! Нажмите кнопку "Продолжить"',reply_markup=markup)
-    elif callback.data == 'pay2':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        markup = types.InlineKeyboardMarkup()
-        bot.send_message(callback.message.chat.id, 'Оплата прошла успешно!',reply_markup=markup)
+@dp.callback_query(F.data == 'pay')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Оплата прошла успешно! Нажмите кнопку "Продолжить"',reply_markup=kb.resumekey)
 
-    else:
-        bot.send_message(callback.message.chat.id, 'Неизвестная команда')
+@dp.callback_query(F.data == 'pay2')
+async def callback(callback: CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer('Оплата прошла успешно!')
 
-
-bot.infinity_polling()
+    
+if __name__ == '__main__':
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print('Exit')

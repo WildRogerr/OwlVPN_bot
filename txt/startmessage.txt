@@ -2,6 +2,6 @@
                          
 Установите приложение <a href="https://play.google.com/store/apps/details?id=org.amnezia.awg">AmneziaVPN</a> либо <a href="https://play.google.com/store/apps/details?id=org.amnezia.vpn">AmneziaWG</a> для смартфона, <a href="https://amnezia.org/en/downloads">AmneziaVPN</a> для PC.
 
-Для скачивания и установки нажмите на необходимую ссылку выше.
+Для скачивания и установки программы нажмите на соответствующую ссылку выше.
 
 После установки загрузите в программу файл конфигурации отправленный ниже, руководство по загрузке файла находится в разделе "Помощь"
