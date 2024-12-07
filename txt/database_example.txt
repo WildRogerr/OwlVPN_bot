@@ -1,12 +1,6 @@
 .open owldatabase.db
-CREATE TABLE botowluserskz(client_id  INTEGER PRIMARY KEY NOT NULL, userid INTEGER,firstname TEXT, lastname TEXT, username TEXT, pay_day INTEGER, days_without_pay INTEGER, next_month TEXT, FOREIGN KEY(username) REFERENCES serverowluserskz(username));
+CREATE TABLE botowluserskz(client_id  INTEGER PRIMARY KEY NOT NULL, userid INTEGER,firstname TEXT, lastname TEXT, username TEXT, promo INTEGER, tariff INTEGER, pay_day INTEGER, days_without_pay INTEGER, next_month INTEGER, client_name TEXT, active INTEGER);
 
 botowluserskz
-client_id*  userid   firstname lastname  username+   pay_day  days_without_pay  next_month  
-1           12345    vasya     pup       durik       0        0	                False       
-
-CREATE TABLE serverowluserskz(server_id  INTEGER PRIMARY KEY NOT NULL, client_id INTEGER,client_name TEXT, username TEXT, active TEXT, promo TEXT, tariff INTEGER, FOREIGN KEY(client_id) REFERENCES botowluserskz(client_id));
-
-serverowluserskz
-server_id  client_id+   client_name  username*  active  promo  tariff 
-1          1            client.owl1  durik      True    False  1
+client_id  userid   firstname lastname  username  promo  tariff   pay_day  days_without_pay  next_month  client_name  active    
+1          12345    vasya     pup       durik     0      1        0        0	             0           clientowl_1  1      
