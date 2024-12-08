@@ -29,27 +29,27 @@ class database:
             cur.execute(f'SELECT tariff FROM botowluserskz WHERE username = ? OR userid = ?',(username,userid))
             client_tariff_check = cur.fetchone() 
 
-            if client_active_check == 1 and not client_userid_check:
+            if client_active_check[0] == 1 and not client_userid_check:
                 cur.execute(f'UPDATE botowluserskz SET userid = ? firstname = ? lastname = ? username = ? pay_day = ? days_without_pay = ? next_month = ? WHERE client_id = ?)',
-                            (userid,firstname,lastname,username,pay_day,days_without_pay,next_month,client_check))
+                            (userid,firstname,lastname,username,pay_day,days_without_pay,next_month,client_check[0]))
                 conn.commit()
                 conn.close()
                 return 1
             
-            elif client_active_check == 1 and client_userid_check:
-                cur.execute(f'UPDATE botowluserskz SET username = ? WHERE userid = ?',(username,client_userid_check))
+            elif client_active_check[0] == 1 and client_userid_check:
+                cur.execute(f'UPDATE botowluserskz SET username = ? WHERE userid = ?',(username,client_userid_check[0]))
                 conn.commit()
                 conn.close()
                 return 2
             
-            elif client_active_check == 0 and client_tariff_check:
-                cur.execute(f'UPDATE botowluserskz SET username = ? WHERE userid = ?',(username,client_userid_check))
+            elif client_active_check[0] == 0 and client_tariff_check:
+                cur.execute(f'UPDATE botowluserskz SET username = ? WHERE userid = ?',(username,client_userid_check[0]))
                 conn.commit()
                 conn.close()
                 return 3 
             
             elif client_active_check == 0 and not client_tariff_check:
-                cur.execute(f'UPDATE botowluserskz SET username = ? WHERE userid = ?',(username,client_userid_check))
+                cur.execute(f'UPDATE botowluserskz SET username = ? WHERE userid = ?',(username,client_userid_check[0]))
                 conn.commit()
                 conn.close()
                 return 4            
@@ -65,4 +65,45 @@ class database:
             cur.execute(f'UPDATE botowluserskz SET client_name = ? WHERE client_id = ?', (client_name,client_id[0]))
             conn.commit()
             conn.close()
-            return 0             
+            return 0        
+
+    def getusers(self):
+        conn = sqlite3.connect('./owldatabase.db')
+        cur = conn.cursor()
+        cur.execute(f'SELECT userid FROM botowluserskz')
+        user_ids = []
+        row = cur.fetchone()
+        if row:
+            for id in row:
+                user_ids.append(id)
+        conn.close()
+        return user_ids   
+   
+    def addtariff(self,tariff,userid):
+        conn = sqlite3.connect('./owldatabase.db')
+        cur = conn.cursor()
+        cur.execute(f'UPDATE botowluserskz SET tariff = ? WHERE userid = ?',(tariff,userid))
+        if tariff == 4 or 5:
+            cur.execute(f'UPDATE botowluserskz SET promo = 1 WHERE userid = ?',(userid,))
+        conn.commit()
+        conn.close()
+
+    def gettariff(self,userid):
+        conn = sqlite3.connect('./owldatabase.db')
+        cur = conn.cursor()
+        cur.execute(f'SELECT tariff FROM botowluserskz WHERE userid = ?',(userid,))
+        number = cur.fetchone()
+        tariff = number[0]
+        conn.commit()
+        conn.close()
+        return tariff
+    
+    def getpromo(self,userid):
+        conn = sqlite3.connect('./owldatabase.db')
+        cur = conn.cursor()
+        cur.execute(f'SELECT promo FROM botowluserskz WHERE userid = ?',(userid,))
+        number = cur.fetchone()
+        tariff = number[0]
+        conn.commit()
+        conn.close()
+        return tariff

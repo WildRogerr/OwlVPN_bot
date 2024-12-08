@@ -13,7 +13,7 @@ mainkeyboard = ReplyKeyboardMarkup(keyboard=[
 
 adminkeyboard = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='⚙️ Получить файл конфигурации')],
-    [KeyboardButton(text='Выполнить рассылку сообщения всем пользователям ↗️')],
+    [KeyboardButton(text='Выполнить рассылку сообщений всем пользователям ↗️')],
     [KeyboardButton(text='❔ Помощь'),KeyboardButton(text='💬 F.A.Q.')],
     [KeyboardButton(text='✉️ Написать обращение')],
 ],
