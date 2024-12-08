@@ -1,6 +1,8 @@
 .open owldatabase.db
-CREATE TABLE botowluserskz(client_id  INTEGER PRIMARY KEY NOT NULL, userid INTEGER,firstname TEXT, lastname TEXT, username TEXT, promo INTEGER, tariff INTEGER, pay_day INTEGER, days_without_pay INTEGER, next_month INTEGER, client_name TEXT, active INTEGER);
+CREATE TABLE botowluserskz(client_id  INTEGER PRIMARY KEY NOT NULL, userid INTEGER,firstname TEXT, lastname TEXT, username TEXT, promo INTEGER, tariff INTEGER, pay_day INTEGER, days_without_pay INTEGER, next_month INTEGER, client_name TEXT, active INTEGER, server_accounts1 INTEGER, server_accounts2 INTEGER, server_accounts3 INTEGER);
 
 botowluserskz
-client_id  userid   firstname lastname  username  promo  tariff   pay_day  days_without_pay  next_month  client_name  active    
-1          12345    vasya     pup       durik     0      1        0        0	             0           clientowl_1  1      
+client_id  userid   firstname lastname  username  promo  tariff   pay_day  days_without_pay  next_month  client_name  active server_account1  server_account2  server_account3
+1          12345    vasya     pup       durik     0      1        0        0	             0           clientowl_1  1      1				  0                0
+
+
