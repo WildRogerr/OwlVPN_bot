@@ -24,6 +24,7 @@ async def main():
 
 class data:
     databasemanager = database()
+    servermanager = managebot()
     userdata = []
     messages_to_delete = {}
     sent_messages = []
@@ -34,6 +35,51 @@ class data:
             user_ids = self.databasemanager.getusers()
             time.sleep(2)
             return user_ids
+
+
+
+class sheduler():
+    def sent_pay_message(self):
+        while True:
+            users = data()
+            user_ids = users.update_user_ids()
+            for user_id in user_ids:
+                active_status = data.databasemanager.get_active_status(user_id)
+                pay_day = data.databasemanager.get_pay_day(user_id)
+                day_of_mounth = data.databasemanager.get_day_of_mount()
+                hour = data.databasemanager.get_hour()
+                if active_status == 1 and pay_day == day_of_mounth and hour == 12:
+                    data.databasemanager.set_left_days(user_id,code=1)
+                    end_day = data.databasemanager.three_days_counter()
+                    data.databasemanager.set_end_day(user_id,end_day)
+                    bot.send_message(user_id, 'Добрый день, сегодня день оплаты по вашему тарифу, пожалуйста оплатите следующий месяц с помощью кнопки "Произвести оплату".')
+            time.sleep(600)
+
+    def countdown_shutdown():
+        while True:    
+            users = data()
+            user_ids = users.update_user_ids()
+            for user_id in user_ids:
+                left_days = data.databasemanager.get_left_days(user_id)
+                if left_days == 1:
+                    while True:
+                        end_day = data.databasemanager.get_end_day()
+                        day_of_mounth = data.databasemanager.get_day_of_mount()
+                        hour = data.databasemanager.get_hour()
+                        remaining_time = end_day - day_of_mounth
+                        if remaining_time <= 1 and remaining_time > 0 and hour >= 12:
+                            bot.send_message(user_id, 'Добрый день, у вас остался 1 день, чтоб осуществить оплату за следующий месяц, иначе ваш аккаунт будет деактивирован до осуществления оплаты. Пожалуйста оплатите следующий месяц с помощью кнопки "Произвести оплату".')
+                        elif remaining_time <= 0 and hour >= 12:
+                            bot.send_message(user_id, 'Добрый день, Ваш аккаунт деактивирован до поступления средств. Оплатите следующий месяц с помощью кнопки "Произвести оплату" и аккаунт будет активирован вновь.')   
+                            data.databasemanager.set_left_days(user_id,code=0)
+                            data.databasemanager.set_end_day(user_id,end_day=0)
+                            data.databasemanager.active_status(user_id,code=False)
+                            client_name = data.databasemanager.get_client_name(user_id)
+                            data.servermanager.active_server_switch(user_id,client_name)
+                        break
+            time.sleep(600)
+
+
 
 @dp.message(Command('start'))
 async def start(message: Message):
@@ -103,7 +149,7 @@ async def delete_broadcast_command(message: Message):
     user_request = message.from_user.id
     if user_request != ADMIN:
         await message.answer("У вас нет прав на выполнение этой команды.")
-        return 0
+        return
 
     for msg in data.sent_messages:
         try:
@@ -116,142 +162,208 @@ async def delete_broadcast_command(message: Message):
 
 @dp.message(F.text == '⚙️ Получить файл конфигурации')
 async def text_handler1(message: Message):
-    await message.delete()
-    if message.chat.id in data.messages_to_delete:
-        try:
-            await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
-        except Exception as e:
-            print(f"Ошибка удаления: {e}")
     user_id = message.from_user.id
-    tariff_number = data.databasemanager.gettariff(user_id)
-    client_name = data.databasemanager.get_client_name(user_id)
-    if tariff_number == 1:
-        tariff = '1 аккаунт'
-        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/amneziawg.kz.conf")
-        await message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
-        await bot.send_document(chat_id=message.chat.id,document=file)
-    elif tariff_number == 2:
-        tariff = '2 аккаунта'
-        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/amneziawg.kz.conf")
-        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/amneziawg.kz.conf")
-        await message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
-        await bot.send_document(chat_id=message.chat.id,document=file,caption="Файл 1:")
-        await bot.send_document(chat_id=message.chat.id,document=file2,caption="Файл 2:")
-    elif tariff_number == 3:
-        tariff = '3 аккаунта'
-        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/amneziawg.kz.conf")
-        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/amneziawg.kz.conf")
-        file3 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}3/amneziawg.kz.conf")
-        await message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
-        await bot.send_document(chat_id=message.chat.id,document=file,caption="Файл 1:")
-        await bot.send_document(chat_id=message.chat.id,document=file2,caption="Файл 2:")
-        await bot.send_document(chat_id=message.chat.id,document=file3,caption="Файл 3:")
-    elif tariff_number == 4:
-        tariff = '1 аккаунт PROMO'
-        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/amneziawg.kz.conf")
-        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/amneziawg.kz.conf")
-        await message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
-        await bot.send_document(chat_id=message.chat.id,document=file,caption="Для смартфона:")
-        await bot.send_document(chat_id=message.chat.id,document=file2,caption="Для PC:")
-    elif tariff_number == 5:
-        tariff = '2 аккаунта PROMO'
-        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/amneziawg.kz.conf")
-        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/amneziawg.kz.conf")
-        file3 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}3/amneziawg.kz.conf")
-        await message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
-        await bot.send_document(chat_id=message.chat.id,document=file,caption="Для смартфона:")
-        await bot.send_document(chat_id=message.chat.id,document=file2,caption="Для смартфона:")
-        await bot.send_document(chat_id=message.chat.id,document=file3,caption="Для PC:")
-    elif tariff_number == 0:
-        tariff = 'Бесплатный'
-        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}1/amneziawg.kz.conf")
-        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/amneziawg.kz.conf")
-        await message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
-        await bot.send_document(chat_id=message.chat.id,document=file,caption="Для смартфона:")
-        await bot.send_document(chat_id=message.chat.id,document=file2,caption="Для PC:")
-    else: 
-        tariff = 'Не выбран'
-        await message.answer(f'Ваш тариф: "{tariff}"')
-
+    if data.databasemanager.get_server_account1(user_id):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        user_id = message.from_user.id
+        tariff_number = data.databasemanager.gettariff(user_id)
+        client_name = data.databasemanager.get_client_name(user_id)
+        if tariff_number == 1:
+            tariff = '1 аккаунт'
+            file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/owlvpn.kz.conf")
+            await message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
+            await bot.send_document(chat_id=message.chat.id,document=file)
+        elif tariff_number == 2:
+            tariff = '2 аккаунта'
+            file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/owlvpn.kz.conf")
+            file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/owlvpn.kz.conf")
+            await message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
+            await bot.send_document(chat_id=message.chat.id,document=file,caption="Файл 1:")
+            await bot.send_document(chat_id=message.chat.id,document=file2,caption="Файл 2:")
+        elif tariff_number == 3:
+            tariff = '3 аккаунта'
+            file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/owlvpn.kz.conf")
+            file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/owlvpn.kz.conf")
+            file3 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}3/owlvpn.kz.conf")
+            await message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
+            await bot.send_document(chat_id=message.chat.id,document=file,caption="Файл 1:")
+            await bot.send_document(chat_id=message.chat.id,document=file2,caption="Файл 2:")
+            await bot.send_document(chat_id=message.chat.id,document=file3,caption="Файл 3:")
+        elif tariff_number == 4:
+            tariff = '1 аккаунт PROMO'
+            file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/owlvpn.kz.conf")
+            file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/owlvpn.kz.conf")
+            await message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
+            await bot.send_document(chat_id=message.chat.id,document=file,caption="Для смартфона:")
+            await bot.send_document(chat_id=message.chat.id,document=file2,caption="Для PC:")
+        elif tariff_number == 5:
+            tariff = '2 аккаунта PROMO'
+            file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/owlvpn.kz.conf")
+            file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/owlvpn.kz.conf")
+            file3 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}3/owlvpn.kz.conf")
+            await message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
+            await bot.send_document(chat_id=message.chat.id,document=file,caption="Для смартфона:")
+            await bot.send_document(chat_id=message.chat.id,document=file2,caption="Для PC:")
+            await bot.send_document(chat_id=message.chat.id,document=file3,caption="Для смартфона:")
+        elif tariff_number == 0:
+            tariff = 'Бесплатный'
+            file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}1/owlvpn.kz.conf")
+            file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/owlvpn.kz.conf")
+            await message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
+            await bot.send_document(chat_id=message.chat.id,document=file,caption="Для смартфона:")
+            await bot.send_document(chat_id=message.chat.id,document=file2,caption="Для PC:")
+        else: 
+            tariff = 'Не выбран'
+            await message.answer(f'Ваш тариф: "{tariff}"')
+    else:
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        new_message = await message.answer('Команда доступна только для авторизированных пользователей!', reply_markup=kb.paykey)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
+    
 @dp.message(F.text == '✔️ Сменить тариф')
 async def text_handler2(message: Message):
-    await message.delete()
     user_id = message.from_user.id
-    tariff_number = data.databasemanager.gettariff(user_id)
-    tariff_promo = data.databasemanager.getpromo(user_id)
-    if tariff_number == 1:
-        tariff = '1 аккаунт'
-    elif tariff_number == 2:
-        tariff = '2 аккаунта'
-    elif tariff_number == 3:
-        tariff = '3 аккаунта'
-    elif tariff_number == 4:
-        tariff = '1 аккаунт PROMO'
-    elif tariff_number == 5:
-        tariff = '2 аккаунта PROMO'
-    elif tariff_number == 0:
-        tariff = 'Бесплатный'
-    else: 
-        tariff = 'Не выбран'
+    if data.databasemanager.get_server_account1(user_id):
+        await message.delete()
+        user_id = message.from_user.id
+        tariff_number = data.databasemanager.gettariff(user_id)
+        tariff_promo = data.databasemanager.getpromo(user_id)
+        if tariff_number == 1:
+            tariff = '1 аккаунт'
+        elif tariff_number == 2:
+            tariff = '2 аккаунта'
+        elif tariff_number == 3:
+            tariff = '3 аккаунта'
+        elif tariff_number == 4:
+            tariff = '1 аккаунт PROMO'
+        elif tariff_number == 5:
+            tariff = '2 аккаунта PROMO'
+        elif tariff_number == 0:
+            tariff = 'Бесплатный'
+        else: 
+            tariff = 'Не выбран'
 
-    if message.chat.id in data.messages_to_delete:
-        try:
-            await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
-        except Exception as e:
-            print(f"Ошибка удаления: {e}")
-    if tariff_promo == 1:
-        new_message = await message.answer(f'Ваш тариф: "{tariff}"\n\nВыберите новый тариф с помощью кнопки "Выбрать тариф".',reply_markup=kb.tariffkeys)
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        if tariff_promo == 1:
+            new_message = await message.answer(f'Ваш тариф: "{tariff}"\n\nВыберите новый тариф с помощью кнопки "Выбрать тариф".',reply_markup=kb.tariffkeys)
+        else:
+            new_message = await message.answer(f'Ваш тариф: "{tariff}"\n\nВыберите новый тариф с помощью кнопки "Выбрать тариф".',reply_markup=kb.changetariffkeys)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
     else:
-        new_message = await message.answer(f'Ваш тариф: "{tariff}"\n\nВыберите новый тариф с помощью кнопки "Выбрать тариф".',reply_markup=kb.changetariffkeys)
-    data.messages_to_delete[message.chat.id] = new_message.message_id
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        new_message = await message.answer('Команда доступна только для авторизированных пользователей!', reply_markup=kb.paykey)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == '💳 Произвести оплату')
 async def text_handler3(message: Message):
-    await message.delete()
-    if message.chat.id in data.messages_to_delete:
-        try:
-            await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
-        except Exception as e:
-            print(f"Ошибка удаления: {e}")
-    new_message = await message.answer('Нажмите кнопку "Оплатить", чтобы произвести оплату:', reply_markup=kb.paykey)
-    data.messages_to_delete[message.chat.id] = new_message.message_id
+    user_id = message.from_user.id
+    if data.databasemanager.get_server_account1(user_id):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        new_message = await message.answer('Нажмите кнопку "Оплатить", чтобы произвести оплату:', reply_markup=kb.paykey)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
+    else:
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        new_message = await message.answer('Команда доступна только для авторизированных пользователей!', reply_markup=kb.paykey)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == '❔ Помощь')#do_later
 async def text_handler4(message: Message):
-    await message.delete()
-    if message.chat.id in data.messages_to_delete:
-        try:
-            await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
-        except Exception as e:
-            print(f"Ошибка удаления: {e}")
-    with open('./txt/help.txt','r',encoding="utf-8") as file:
-        help = file.read()
-        new_message = await message.answer(help, parse_mode='html')
-    data.messages_to_delete[message.chat.id] = new_message.message_id
+    user_id = message.from_user.id
+    if data.databasemanager.get_server_account1(user_id):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        with open('./txt/help.txt','r',encoding="utf-8") as file:
+            help = file.read()
+            new_message = await message.answer(help, parse_mode='html')
+        data.messages_to_delete[message.chat.id] = new_message.message_id
+    else:
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        new_message = await message.answer('Команда доступна только для авторизированных пользователей!', reply_markup=kb.paykey)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == '💬 F.A.Q.')#do_later
 async def text_handler5(message: Message):
-    await message.delete()
-    if message.chat.id in data.messages_to_delete:
-        try:
-            await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
-        except Exception as e:
-            print(f"Ошибка удаления: {e}")
-    with open('./txt/faq.txt','r',encoding="utf-8") as file:
-        faq = file.read()
-        new_message = await message.answer(faq, parse_mode='html')
-    data.messages_to_delete[message.chat.id] = new_message.message_id
+    user_id = message.from_user.id
+    if data.databasemanager.get_server_account1(user_id):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        with open('./txt/faq.txt','r',encoding="utf-8") as file:
+            faq = file.read()
+            new_message = await message.answer(faq, parse_mode='html')
+        data.messages_to_delete[message.chat.id] = new_message.message_id
+    else:
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        new_message = await message.answer('Команда доступна только для авторизированных пользователей!', reply_markup=kb.paykey)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == '✉️ Написать обращение')#do_later
 async def text_handler6(message: Message):
-    await message.delete()
-    if message.chat.id in data.messages_to_delete:
-        try:
-            await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
-        except Exception as e:
-            print(f"Ошибка удаления: {e}")
-    new_message = await message.answer(f'Напишите ваш вопрос или опишите проблему по слудующей ссылке: {LINKSUPPORT}. Прежде чем написать в поддержку посмотрите пожалуйста раздел "F.A.Q.", возможно там уже есть решение вашего вопроса.',parse_mode='html')
-    data.messages_to_delete[message.chat.id] = new_message.message_id
+    user_id = message.from_user.id
+    if data.databasemanager.get_server_account1(user_id):
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        new_message = await message.answer(f'Напишите ваш вопрос или опишите проблему по слудующей ссылке: {LINKSUPPORT}. Прежде чем написать в поддержку посмотрите пожалуйста раздел "F.A.Q.", возможно там уже есть решение вашего вопроса.',parse_mode='html')
+        data.messages_to_delete[message.chat.id] = new_message.message_id
+    else:
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        new_message = await message.answer('Команда доступна только для авторизированных пользователей!', reply_markup=kb.paykey)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == PROMOCODE)
 async def text_handler7(message: Message):
@@ -278,14 +390,18 @@ async def text_handler7(message: Message):
 
 @dp.message(F.text == 'Выполнить рассылку сообщений всем пользователям ↗️')
 async def text_handler8(message: Message):
-    await message.delete()
-    if message.chat.id in data.messages_to_delete:
-        try:
-            await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
-        except Exception as e:
-            print(f"Ошибка удаления: {e}")
-    new_message = await message.answer('Для рассылки сообщения всем пользователям необходимо ввести команду "/broadcast Текст сообщения", после чего произвести отправку', reply_markup=kb.backbtn)
-    data.messages_to_delete[message.chat.id] = new_message.message_id
+    user_request = message.from_user.id
+    if user_request != ADMIN:
+        await message.delete()
+        if message.chat.id in data.messages_to_delete:
+            try:
+                await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
+            except Exception as e:
+                print(f"Ошибка удаления: {e}")
+        new_message = await message.answer('Для рассылки сообщения всем пользователям необходимо ввести команду "/broadcast Текст сообщения", после чего произвести отправку', reply_markup=kb.backbtn)
+        data.messages_to_delete[message.chat.id] = new_message.message_id
+    else:
+        message.answer("У вас нет прав на выполнение этой команды.")
 
 @dp.message(F.text != ['⚙️ Получить файл конфигурации',
                        '✔️ Сменить тариф',
@@ -294,7 +410,7 @@ async def text_handler8(message: Message):
                        '💬 F.A.Q.',
                        '✉️ Написать обращение',
                        PROMOCODE,
-                       'Выполнить рассылку сообщения всем пользователям ↗️'])
+                       'Выполнить рассылку сообщений всем пользователям ↗️'])
 async def text_handler9(message: Message):
     await message.answer('Неизвестные данные.')
 
@@ -338,45 +454,45 @@ async def callback(callback: CallbackQuery):
     client_name = data.databasemanager.get_client_name(user_id)
     if tariff_number == 1:
         tariff = '1 аккаунт'
-        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/amneziawg.kz.conf")
+        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/owlvpn.kz.conf")
         await callback.message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
         await bot.send_document(chat_id=callback.message.chat.id,document=file)
     elif tariff_number == 2:
         tariff = '2 аккаунта'
-        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/amneziawg.kz.conf")
-        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/amneziawg.kz.conf")
+        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/owlvpn.kz.conf")
+        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/owlvpn.kz.conf")
         await callback.message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
         await bot.send_document(chat_id=callback.message.chat.id,document=file,caption="Файл 1:")
         await bot.send_document(chat_id=callback.message.chat.id,document=file2,caption="Файл 2:")
     elif tariff_number == 3:
         tariff = '3 аккаунта'
-        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/amneziawg.kz.conf")
-        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/amneziawg.kz.conf")
-        file3 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}3/amneziawg.kz.conf")
+        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/owlvpn.kz.conf")
+        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/owlvpn.kz.conf")
+        file3 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}3/owlvpn.kz.conf")
         await callback.message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
         await bot.send_document(chat_id=callback.message.chat.id,document=file,caption="Файл 1:")
         await bot.send_document(chat_id=callback.message.chat.id,document=file2,caption="Файл 2:")
         await bot.send_document(chat_id=callback.message.chat.id,document=file3,caption="Файл 3:")
     elif tariff_number == 4:
         tariff = '1 аккаунт PROMO'
-        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/amneziawg.kz.conf")
-        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/amneziawg.kz.conf")
+        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/owlvpn.kz.conf")
+        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/owlvpn.kz.conf")
         await callback.message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
         await bot.send_document(chat_id=callback.message.chat.id,document=file,caption="Для смартфона:")
         await bot.send_document(chat_id=callback.message.chat.id,document=file2,caption="Для PC:")
     elif tariff_number == 5:
         tariff = '2 аккаунта PROMO'
-        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/amneziawg.kz.conf")
-        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/amneziawg.kz.conf")
-        file3 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}3/amneziawg.kz.conf")
+        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/owlvpn.kz.conf")
+        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/owlvpn.kz.conf")
+        file3 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}3/owlvpn.kz.conf")
         await callback.message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
         await bot.send_document(chat_id=callback.message.chat.id,document=file,caption="Для смартфона:")
         await bot.send_document(chat_id=callback.message.chat.id,document=file2,caption="Для смартфона:")
         await bot.send_document(chat_id=callback.message.chat.id,document=file3,caption="Для PC:")
     elif tariff_number == 0:
         tariff = 'Бесплатный'
-        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}1/amneziawg.kz.conf")
-        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/amneziawg.kz.conf")
+        file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}1/owlvpn.kz.conf")
+        file2 = FSInputFile(f"/home/vpnserver/user_configs/{client_name}2/owlvpn.kz.conf")
         await callback.message.answer(f'Ваш тариф: "{tariff}"\n\nВаш конфигурационный файл(ы):')
         await bot.send_document(chat_id=callback.message.chat.id,document=file,caption="Для смартфона:")
         await bot.send_document(chat_id=callback.message.chat.id,document=file2,caption="Для PC:")
@@ -408,6 +524,7 @@ async def callback(callback: CallbackQuery):
     tariff = 1
     user_id = callback.from_user.id
     data.databasemanager.addtariff(tariff,user_id)
+    data.databasemanager.server_accounts(user_id,code=1)
     await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
 @dp.callback_query(F.data == 'tariff2')
@@ -416,6 +533,8 @@ async def callback(callback: CallbackQuery):
     tariff = 2
     user_id = callback.from_user.id
     data.databasemanager.addtariff(tariff,user_id)
+    data.databasemanager.server_accounts(user_id,code=1)
+    data.databasemanager.server_accounts(user_id,code=2)
     await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
 @dp.callback_query(F.data == 'tariff3')
@@ -424,6 +543,9 @@ async def callback(callback: CallbackQuery):
     tariff = 3
     user_id = callback.from_user.id
     data.databasemanager.addtariff(tariff,user_id)
+    data.databasemanager.server_accounts(user_id,code=1)
+    data.databasemanager.server_accounts(user_id,code=2)
+    data.databasemanager.server_accounts(user_id,code=3)
     await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
 @dp.callback_query(F.data == 'tariff4')
@@ -431,6 +553,8 @@ async def callback(callback: CallbackQuery):
     await callback.message.delete()
     tariff = 4
     user_id = callback.from_user.id
+    data.databasemanager.server_accounts(user_id,code=1)
+    data.databasemanager.server_accounts(user_id,code=2)
     data.databasemanager.addtariff(tariff,user_id)
     await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
@@ -440,6 +564,9 @@ async def callback(callback: CallbackQuery):
     tariff = 5
     user_id = callback.from_user.id
     data.databasemanager.addtariff(tariff,user_id)
+    data.databasemanager.server_accounts(user_id,code=1)
+    data.databasemanager.server_accounts(user_id,code=2)
+    data.databasemanager.server_accounts(user_id,code=3)
     await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
 
 @dp.callback_query(F.data == 'chtariff1')
@@ -491,6 +618,9 @@ async def callback(callback: CallbackQuery):
 async def callback(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer('Оплата прошла успешно!')
+
+message_sender = sheduler()
+message_sender.sent_pay_message()
 
 if __name__ == '__main__':
     try:
