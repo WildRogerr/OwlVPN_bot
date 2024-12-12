@@ -1,17 +1,16 @@
 .open owldatabase.db
-CREATE TABLE botowluserskz(client_id  INTEGER PRIMARY KEY NOT NULL, userid INTEGER,firstname TEXT, lastname TEXT, username TEXT, promo INTEGER, tariff INTEGER, pay_day INTEGER, left_days INTEGER, end_day INTEGER, next_month INTEGER, client_name TEXT, active INTEGER, server_accounts1 INTEGER, server_accounts2 INTEGER, server_accounts3 INTEGER, banned INTEGER);
+CREATE TABLE botowluserskz(client_id  INTEGER PRIMARY KEY NOT NULL, userid INTEGER,firstname TEXT, lastname TEXT, username TEXT, promo INTEGER, tariff INTEGER, pay_day INTEGER, left_days INTEGER, end_day INTEGER, next_month INTEGER, client_name TEXT, active INTEGER, server_account1 INTEGER, server_account2 INTEGER, server_account3 INTEGER, banned INTEGER);
 
 botowluserskz
-client_id  userid   firstname lastname  username  promo  tariff   pay_day  left_days  end_day  next_month  client_name  active server_account1  server_account2  server_account3  banned
-1          12345    vasya     pup       durik     0      1        0        0	      0        0           clientowl_1  1      1				1                                 0
+client_id  userid   firstname lastname  username  promo  tariff  pay_day  left_days  end_day  next_month  client_name  active server_account1  server_account2  server_account3  banned
+1          12345    vasya     pup       durik     0      1       0        0	         0        0           clientowl_1  1      1				   1                                 0
 
 
     # Написать:
-	# Функция оплаты через уведомления и скрины
-    # Функция подтверждения по кнопке с условиями
+	# функция следующего месяца
     # Функция бана
     # Функции лога
-	
     # Доделать информационные функции
+	
     # Написать программу для управления базой данных
     # Тестить всё

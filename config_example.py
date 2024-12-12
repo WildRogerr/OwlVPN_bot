@@ -1,0 +1,12 @@
+TOKEN = ''
+ADMIN = 'user_id'
+LINKSUPPORT = '<u>@telegram_link</u>'
+PROMOCODE = ''
+TARIFF = ''
+PROMOTARIFF = ''
+CARDNUMBER = ""
+TARIFF1 = ' рублей'
+TARIFF2 = ' рублей'
+TARIFF3 = ' рублей'
+TARIFF4 = ' рублей'
+TARIFF5 = ' рублей'

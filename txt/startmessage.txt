@@ -1,4 +1,4 @@
-<b>VPN подключен!</b>
+<b>Добро пожаловать в главное меню VPN сервиса Owl!</b>
                          
 Установите приложение <a href="https://play.google.com/store/apps/details?id=org.amnezia.awg">AmneziaVPN</a> либо <a href="https://play.google.com/store/apps/details?id=org.amnezia.vpn">AmneziaWG</a> для смартфона, <a href="https://amnezia.org/en/downloads">AmneziaVPN</a> для PC.
 

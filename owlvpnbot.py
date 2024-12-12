@@ -5,12 +5,7 @@ from aiogram.types.input_file import FSInputFile
 import asyncio
 import time
 import logging
-from config import TOKEN
-from config import ADMIN
-from config import LINKSUPPORT
-from config import TARIFF
-from config import PROMOCODE
-from config import PROMOTARIFF
+from config import TOKEN,ADMIN,LINKSUPPORT,TARIFF,PROMOCODE,PROMOTARIFF,CARDNUMBER,TARIFF1,TARIFF2,TARIFF3,TARIFF4,TARIFF5
 from asyncio import sleep
 import app.keyboards as kb
 from app.owlvpnbackend import database
@@ -227,7 +222,7 @@ async def text_handler1(message: Message):
                 await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
             except Exception as e:
                 print(f"Ошибка удаления: {e}")
-        new_message = await message.answer('Команда доступна только для авторизированных пользователей!', reply_markup=kb.paykey)
+        new_message = await message.answer('Команда доступна только для авторизированных пользователей!')
         data.messages_to_delete[message.chat.id] = new_message.message_id
     
 @dp.message(F.text == '✔️ Сменить тариф')
@@ -270,7 +265,7 @@ async def text_handler2(message: Message):
                 await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
             except Exception as e:
                 print(f"Ошибка удаления: {e}")
-        new_message = await message.answer('Команда доступна только для авторизированных пользователей!', reply_markup=kb.paykey)
+        new_message = await message.answer('Команда доступна только для авторизированных пользователей!')
         data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == '💳 Произвести оплату')
@@ -292,7 +287,7 @@ async def text_handler3(message: Message):
                 await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
             except Exception as e:
                 print(f"Ошибка удаления: {e}")
-        new_message = await message.answer('Команда доступна только для авторизированных пользователей!', reply_markup=kb.paykey)
+        new_message = await message.answer('Команда доступна только для авторизированных пользователей!')
         data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == '❔ Помощь')#do_later
@@ -316,7 +311,7 @@ async def text_handler4(message: Message):
                 await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
             except Exception as e:
                 print(f"Ошибка удаления: {e}")
-        new_message = await message.answer('Команда доступна только для авторизированных пользователей!', reply_markup=kb.paykey)
+        new_message = await message.answer('Команда доступна только для авторизированных пользователей!')
         data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == '💬 F.A.Q.')#do_later
@@ -340,7 +335,7 @@ async def text_handler5(message: Message):
                 await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
             except Exception as e:
                 print(f"Ошибка удаления: {e}")
-        new_message = await message.answer('Команда доступна только для авторизированных пользователей!', reply_markup=kb.paykey)
+        new_message = await message.answer('Команда доступна только для авторизированных пользователей!')
         data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == '✉️ Написать обращение')#do_later
@@ -362,7 +357,7 @@ async def text_handler6(message: Message):
                 await bot.delete_message(chat_id=message.chat.id, message_id=data.messages_to_delete[message.chat.id])
             except Exception as e:
                 print(f"Ошибка удаления: {e}")
-        new_message = await message.answer('Команда доступна только для авторизированных пользователей!', reply_markup=kb.paykey)
+        new_message = await message.answer('Команда доступна только для авторизированных пользователей!')
         data.messages_to_delete[message.chat.id] = new_message.message_id
 
 @dp.message(F.text == PROMOCODE)
@@ -403,6 +398,30 @@ async def text_handler8(message: Message):
     else:
         message.answer("У вас нет прав на выполнение этой команды.")
 
+@dp.message(F.photo)
+async def handle_photo(message: Message):
+    # photo = message.photo[-1]
+    # file_id = photo.file_id
+    admin_id = ADMIN
+    user_id = message.from_user.id
+    firstname = message.from_user.first_name
+    lastname = message.from_user.last_name
+    username = message.from_user.username
+    await bot.forward_message(chat_id=admin_id, from_chat_id=message.chat.id, message_id=message.message_id)
+    await bot.send_message(admin_id, f'Скриншот оплаты от пользователя: <b>{firstname}</b> <b>{lastname}</b>, <b>{username}</b>, user_id = <b>{user_id}</b>',parse_mode='html')
+    await message.answer(f'Скриншот отправлен.')
+
+@dp.message(F.document)
+async def handle_photo(message: Message):
+    admin_id = ADMIN
+    user_id = message.from_user.id
+    firstname = message.from_user.first_name
+    lastname = message.from_user.last_name
+    username = message.from_user.username
+    await bot.forward_message(chat_id=admin_id, from_chat_id=message.chat.id, message_id=message.message_id)
+    await bot.send_message(admin_id, f'Скриншот оплаты от пользователя: <b>{firstname}</b> <b>{lastname}</b>, <b>{username}</b>, user_id = <b>{user_id}</b>',parse_mode='html')
+    await message.answer(f'Скриншот отправлен.')
+
 @dp.message(F.text != ['⚙️ Получить файл конфигурации',
                        '✔️ Сменить тариф',
                        '💳 Произвести оплату',
@@ -413,6 +432,8 @@ async def text_handler8(message: Message):
                        'Выполнить рассылку сообщений всем пользователям ↗️'])
 async def text_handler9(message: Message):
     await message.answer('Неизвестные данные.')
+
+
 
 @dp.callback_query(F.data == 'startvpn')
 async def callback(callback: CallbackQuery): 
@@ -449,9 +470,9 @@ async def callback(callback: CallbackQuery):
     with open('./txt/startmessage.txt','r',encoding="utf-8") as file:
             startmessage = file.read()
     await callback.message.answer(startmessage, parse_mode='html', disable_web_page_preview=True, reply_markup=kb.mainkeyboard)
-    user_id = callback.message.from_user.id
-    tariff_number = data.databasemanager.gettariff(user_id)
+    user_id = callback.from_user.id
     client_name = data.databasemanager.get_client_name(user_id)
+    tariff_number = data.databasemanager.gettariff(user_id)
     if tariff_number == 1:
         tariff = '1 аккаунт'
         file = FSInputFile(f"/home/vpnserver/user_configs/{client_name}/owlvpn.kz.conf")
@@ -525,7 +546,7 @@ async def callback(callback: CallbackQuery):
     user_id = callback.from_user.id
     data.databasemanager.addtariff(tariff,user_id)
     data.databasemanager.server_accounts(user_id,code=1)
-    await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
+    await callback.message.answer(f'Тариф выбран. Для осуществления оплаты переведите <b>{TARIFF1}</b> по номеру карты: <u>{CARDNUMBER}</u>, отправьте скриншот с информацией о переводе средств в чат и нажмите кнопку "Оплачено".', parse_mode='html',reply_markup=kb.paykeys)
 
 @dp.callback_query(F.data == 'tariff2')
 async def callback(callback: CallbackQuery):
@@ -535,7 +556,7 @@ async def callback(callback: CallbackQuery):
     data.databasemanager.addtariff(tariff,user_id)
     data.databasemanager.server_accounts(user_id,code=1)
     data.databasemanager.server_accounts(user_id,code=2)
-    await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
+    await callback.message.answer(f'Тариф выбран. Для осуществления оплаты переведите <b>{TARIFF2}</b> по номеру карты: <u>{CARDNUMBER}</u>, отправьте скриншот с информацией о переводе средств в чат и нажмите кнопку "Оплачено".', parse_mode='html',reply_markup=kb.paykeys)
 
 @dp.callback_query(F.data == 'tariff3')
 async def callback(callback: CallbackQuery):
@@ -546,7 +567,7 @@ async def callback(callback: CallbackQuery):
     data.databasemanager.server_accounts(user_id,code=1)
     data.databasemanager.server_accounts(user_id,code=2)
     data.databasemanager.server_accounts(user_id,code=3)
-    await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
+    await callback.message.answer(f'Тариф выбран. Для осуществления оплаты переведите <b>{TARIFF3}</b> по номеру карты: <u>{CARDNUMBER}</u>, отправьте скриншот с информацией о переводе средств в чат и нажмите кнопку "Оплачено".', parse_mode='html',reply_markup=kb.paykeys)
 
 @dp.callback_query(F.data == 'tariff4')
 async def callback(callback: CallbackQuery):
@@ -556,7 +577,7 @@ async def callback(callback: CallbackQuery):
     data.databasemanager.server_accounts(user_id,code=1)
     data.databasemanager.server_accounts(user_id,code=2)
     data.databasemanager.addtariff(tariff,user_id)
-    await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
+    await callback.message.answer(f'Тариф выбран. Для осуществления оплаты переведите <b>{TARIFF4}</b> по номеру карты: <u>{CARDNUMBER}</u>, отправьте скриншот с информацией о переводе средств в чат и нажмите кнопку "Оплачено".', parse_mode='html',reply_markup=kb.paykeys)
 
 @dp.callback_query(F.data == 'tariff5')
 async def callback(callback: CallbackQuery):
@@ -567,7 +588,7 @@ async def callback(callback: CallbackQuery):
     data.databasemanager.server_accounts(user_id,code=1)
     data.databasemanager.server_accounts(user_id,code=2)
     data.databasemanager.server_accounts(user_id,code=3)
-    await callback.message.answer('Тариф выбран. Нажмите кнопку "Оплатить" для осуществления оплаты',reply_markup=kb.paykeys)
+    await callback.message.answer(f'Тариф выбран. Для осуществления оплаты переведите <b>{TARIFF5}</b> по номеру карты: <u>{CARDNUMBER}</u>, отправьте скриншот с информацией о переводе средств в чат и нажмите кнопку "Оплачено".', parse_mode='html',reply_markup=kb.paykeys)
 
 @dp.callback_query(F.data == 'chtariff1')
 async def callback(callback: CallbackQuery):
@@ -609,21 +630,68 @@ async def callback(callback: CallbackQuery):
     data.databasemanager.addtariff(tariff,user_id)
     await callback.message.answer('Тариф выбран. Для оплаты следующего месяца нажмите кнопку "Произвести оплату" и получите новый файл(ы) конфигурации')
 
-@dp.callback_query(F.data == 'pay')#do_later
+@dp.callback_query(F.data == 'pay')
 async def callback(callback: CallbackQuery):
+    admin_id = ADMIN
+    user_id = callback.from_user.id
+    firstname = callback.from_user.first_name
+    lastname = callback.from_user.last_name
+    username = callback.from_user.username
+    client_name = data.databasemanager.get_client_name(user_id)
+    tariff = data.databasemanager.gettariff(user_id)
+    payrequest = kb.InlineKeyboardMarkup(inline_keyboard=[
+    [kb.InlineKeyboardButton(text='✅ Подтвердить платеж', callback_data=f'payconfirmed:{user_id}'),kb.InlineKeyboardButton(text='❌ Платеж не прошел', callback_data=f'payrejected:{user_id}')]
+    ])
+    await bot.send_message(admin_id, f'Запрос на подтверждение оплаты от пользователя: <b>{firstname}</b> <b>{lastname}</b>, <b>{username}</b>, user_id = <b>{user_id}</b>',parse_mode='html',reply_markup=payrequest)
     await callback.message.delete()
-    await callback.message.answer('Оплата прошла успешно! Нажмите кнопку "Продолжить"',reply_markup=kb.resumekey)
+    await callback.message.answer('Благодарим за оплату, запрос на подтверждение поступления средств отправлен!\n\nПлатеж будет проверен администратором в ближайшее время (2-3 часа), проверка может продлится максимум сутки, если прошло больше времени напишите пожалуйста в техподдержку через кнопку "Написать обращение" или через команду /support.\n\nНажмите кнопку "Продолжить", для доступа в главное меню. Пока платеж проходит обработку установите необходимые приложения и загрузите файл конфигурации по руководству в разделе "Помощь".\n\nПосле подтверждения платежа в чате бота ваш аккаунт будет активирован и вы получите доступ к VPN сервису.',reply_markup=kb.resumekey)
+    data.servermanager.manage_server_accounts(user_id,client_name,tariff)
 
-@dp.callback_query(F.data == 'pay2')#do_later
+@dp.callback_query(F.data == 'pay2')
 async def callback(callback: CallbackQuery):
+    admin_id = ADMIN
+    user_id = callback.from_user.id
+    firstname = callback.from_user.first_name
+    lastname = callback.from_user.last_name
+    username = callback.from_user.username
+    client_name = data.databasemanager.get_client_name(user_id)
+    tariff = data.databasemanager.gettariff(user_id)
+    payrequest = kb.InlineKeyboardMarkup(inline_keyboard=[
+    [kb.InlineKeyboardButton(text='✅ Подтвердить платеж', callback_data=f'payconfirmed:{user_id}'),kb.InlineKeyboardButton(text='❌ Платеж не прошел', callback_data=f'payrejected:{user_id}')]
+    ])
+    await bot.send_message(admin_id, f'Запрос на подтверждение оплаты от пользователя: <b>{firstname}</b> <b>{lastname}</b>, <b>{username}</b>, user_id = <b>{user_id}</b>',parse_mode='html',reply_markup=payrequest)
     await callback.message.delete()
-    await callback.message.answer('Оплата прошла успешно!')
+    await callback.message.answer('Благодарим за оплату, запрос на подтверждение поступления средств отправлен!\n\nПлатеж будет проверен администратором в ближайшее время (2-3 часа), проверка может продлится максимум сутки, если прошло больше времени, напишите пожалуйста в техподдержку через кнопку "Написать обращение" или через команду /support.\n\nЕсли ваш аккаунт был деактивирован, он будет активирован вновь после подтверждения платежа.')
+    data.servermanager.manage_server_accounts(user_id,client_name,tariff)
 
-message_sender = sheduler()
-message_sender.sent_pay_message()
+@dp.callback_query(F.data.startswith('payconfirmed'))
+async def callback(callback: CallbackQuery):
+    user_id = callback.data.split(":")[1]
+    active_status = data.databasemanager.get_active_status(user_id)
+    client_name = data.databasemanager.get_client_name(user_id)
+    if active_status == 0:
+        await callback.message.delete()
+        await bot.send_message(user_id, f'Благодарим. Ваш запрос на подтверждение оплаты одобрен! Аккаунт активирован.')
+    else:
+        await callback.message.delete()
+        await bot.send_message(user_id, f'Благодарим. Ваш запрос на подтверждение оплаты одобрен!')
+    data.databasemanager.active_status(user_id,code=True)
+    data.servermanager.active_server_switch(user_id,client_name)
+    await callback.message.answer('Уведомление отправлено пользователю.')
+
+@dp.callback_query(F.data.startswith('payrejected'))
+async def callback(callback: CallbackQuery):
+    user_id = callback.data.split(":")[1]
+    await callback.message.delete()
+    await bot.send_message(user_id, f'Сожалеем. Ваш запрос на подтверждение оплаты был отклонен, средства не поступили, либо изображение не содержало информацию о подтверждении платежа.\n\nЕсли вы совершили оплату, сделайте скриншот чека из истории переводов, отправьте скриншот и снова нажмите кнопку "Оплачено" в пункте "Произвести оплату".')
+    await callback.message.answer('Уведомление отправлено пользователю.')
 
 if __name__ == '__main__':
     try:
         asyncio.run(main())
+        message_sender = sheduler()
+        asyncio.run(message_sender.sent_pay_message())
+        counter = sheduler()
+        asyncio.run(counter.countdown_shutdown())
     except KeyboardInterrupt:
         print('Exit')

@@ -87,7 +87,7 @@ class database():
         conn = sqlite3.connect('./owldatabase.db')
         cur = conn.cursor()
         cur.execute(f'UPDATE botowluserskz SET tariff = ? WHERE userid = ?',(tariff,userid))
-        if tariff == 4 or 5:
+        if tariff == 4 or tariff == 5:
             cur.execute(f'UPDATE botowluserskz SET promo = 1 WHERE userid = ?',(userid,))
         conn.commit()
         conn.close()
@@ -97,10 +97,7 @@ class database():
         cur = conn.cursor()
         cur.execute(f'SELECT tariff FROM botowluserskz WHERE userid = ?',(userid,))
         number = cur.fetchone()
-        try: 
-            tariff = number[0]
-        except:
-            tariff = None
+        tariff = number[0] if number else None
         conn.close()
         return tariff
     
@@ -118,7 +115,7 @@ class database():
         cur = conn.cursor()
         cur.execute(f'SELECT client_name FROM botowluserskz WHERE userid = ?',(userid,))
         name = cur.fetchone()
-        client_name = name[0]
+        client_name = name[0] if name else None
         conn.close()
         return client_name
     
@@ -194,10 +191,10 @@ class database():
     
     def add_pay_day(self,userid):
         today = date.today()
-        day_of_mounth = today.day
+        day_of_mounth = today.day + 1
         conn = sqlite3.connect('./owldatabase.db')
         cur = conn.cursor()
-        if day_of_mounth == 29 or 30 or 31:
+        if day_of_mounth == 29 or day_of_mounth == 30 or day_of_mounth == 31:
             cur.execute(f'UPDATE botowluserskz SET pay_day = 1 WHERE userid = ?',(userid,))
         else:
             cur.execute(f'UPDATE botowluserskz SET pay_day = ? WHERE userid = ?',(day_of_mounth,userid))
@@ -276,12 +273,12 @@ class managebot():
         if tariff == 1 and server_account1 == False and server_account2 == False and server_account3 == False:
             self.create_server_account(client_name,value=None)
             self.stop_user(client_name,value=None)
-        elif tariff == 2 or 4 and server_account1 == False and server_account2 == False and server_account3 == False:
+        elif tariff == 2 or tariff == 4 and server_account1 == False and server_account2 == False and server_account3 == False:
             self.create_server_account(client_name,value=None)
             self.create_server_account(client_name,value=2)
             self.stop_user(client_name,value=None)
             self.stop_user(client_name,value=2)
-        elif tariff == 3 or 5 and server_account1 == False and server_account2 == False and server_account3 == False:
+        elif tariff == 3 or tariff == 5 and server_account1 == False and server_account2 == False and server_account3 == False:
             self.create_server_account(client_name,value=None)
             self.create_server_account(client_name,value=2)
             self.create_server_account(client_name,value=3)
@@ -290,10 +287,10 @@ class managebot():
             self.stop_user(client_name,value=3)
         elif tariff == 1 and server_account1 == 1 and server_account2 == False and server_account3 == False:
             return
-        elif tariff == 2 or 4 and server_account1 == 1 and server_account2 == False and server_account3 == False:
+        elif tariff == 2 or tariff == 4 and server_account1 == 1 and server_account2 == False and server_account3 == False:
             self.create_server_account(client_name,value=2)
             self.stop_user(client_name,value=2)
-        elif tariff == 3 or 5 and server_account1 == 1 and server_account2 == False and server_account3 == False:
+        elif tariff == 3 or tariff == 5 and server_account1 == 1 and server_account2 == False and server_account3 == False:
             self.create_server_account(client_name,value=2)
             self.create_server_account(client_name,value=3)
             self.stop_user(client_name,value=2)
@@ -301,37 +298,37 @@ class managebot():
         elif tariff == 1 and server_account1 == 1 and server_account2 == 1 and server_account3 == False:
             self.stop_user(client_name,value=2)
             databasemanager.server_accounts(userid,code=5)
-        elif tariff == 2 or 4 and server_account1 == 1 and server_account2 == 1 and server_account3 == False:
+        elif tariff == 2 or tariff == 4 and server_account1 == 1 and server_account2 == 1 and server_account3 == False:
             return
-        elif tariff == 3 or 5 and server_account1 == 1 and server_account2 == 1 and server_account3 == False:
+        elif tariff == 3 or tariff == 5 and server_account1 == 1 and server_account2 == 1 and server_account3 == False:
             self.create_server_account(client_name,value=3)
             self.stop_user(client_name,value=3)
         elif tariff == 1 and server_account1 == 1 and server_account2 == 0 and server_account3 == False:
             return
-        elif tariff == 2 or 4 and server_account1 == 1 and server_account2 == 0 and server_account3 == False:
+        elif tariff == 2 or tariff == 4 and server_account1 == 1 and server_account2 == 0 and server_account3 == False:
             databasemanager.server_accounts(userid,code=2)
-        elif tariff == 3 or 5 and server_account1 == 1 and server_account2 == 0 and server_account3 == False:
+        elif tariff == 3 or tariff == 5 and server_account1 == 1 and server_account2 == 0 and server_account3 == False:
             databasemanager.server_accounts(userid,code=2)
             self.create_server_account(client_name,value=3)
             self.stop_user(client_name,value=3)
         elif tariff == 1 and server_account1 == 1 and server_account2 == 1 and server_account3 == 1:
             databasemanager.server_accounts(userid,code=5)
             databasemanager.server_accounts(userid,code=6)
-        elif tariff == 2 or 4 and server_account1 == 1 and server_account2 == 1 and server_account3 == 1:
+        elif tariff == 2 or tariff == 4 and server_account1 == 1 and server_account2 == 1 and server_account3 == 1:
             databasemanager.server_accounts(userid,code=6)
-        elif tariff == 3 or 5 and server_account1 == 1 and server_account2 == 1 and server_account3 == 1:
+        elif tariff == 3 or tariff == 5 and server_account1 == 1 and server_account2 == 1 and server_account3 == 1:
             return
         elif tariff == 1 and server_account1 == 1 and server_account2 == 1 and server_account3 == 0:
             databasemanager.server_accounts(userid,code=5)
-        elif tariff == 2 or 4 and server_account1 == 1 and server_account2 == 1 and server_account3 == 0:
+        elif tariff == 2 or tariff == 4 and server_account1 == 1 and server_account2 == 1 and server_account3 == 0:
             return
-        elif tariff == 3 or 5 and server_account1 == 1 and server_account2 == 1 and server_account3 == 0:
+        elif tariff == 3 or tariff == 5 and server_account1 == 1 and server_account2 == 1 and server_account3 == 0:
             databasemanager.server_accounts(userid,code=3)
         elif tariff == 1 and server_account1 == 1 and server_account2 == 0 and server_account3 == 0:
             return
-        elif tariff == 2 or 4 and server_account1 == 1 and server_account2 == 0 and server_account3 == 0:
+        elif tariff == 2 or tariff == 4 and server_account1 == 1 and server_account2 == 0 and server_account3 == 0:
             databasemanager.server_accounts(userid,code=2)
-        elif tariff == 3 or 5 and server_account1 == 1 and server_account2 == 0 and server_account3 == 0:
+        elif tariff == 3 or tariff == 5 and server_account1 == 1 and server_account2 == 0 and server_account3 == 0:
             databasemanager.server_accounts(userid,code=2)
             databasemanager.server_accounts(userid,code=3)
 
@@ -355,14 +352,14 @@ class managebot():
         server_account2 = databasemanager.get_server_account2(userid)
         server_account3 = databasemanager.get_server_account3(userid)
         activestatus = databasemanager.get_active_status(userid)
-        if activestatus == 1 and server_account1 == 1 and server_account2 == False or 0 and server_account3 == False or 0:
+        if activestatus == 1 and server_account1 == 1 and server_account2 == False or server_account2 == 0 and server_account3 == False or server_account3 == 0:
             self.start_user(client_name,value=None)
-        if activestatus == 0 and server_account1 == 1 and server_account2 == False or 0 and server_account3 == False or 0:
+        if activestatus == 0 and server_account1 == 1 and server_account2 == False or server_account2 == 0 and server_account3 == False or server_account3 == 0:
             self.stop_user(client_name,value=None)
-        if activestatus == 1 and server_account1 == 1 and server_account2 == 1 and server_account3 == False or 0:
+        if activestatus == 1 and server_account1 == 1 and server_account2 == 1 and server_account3 == False or server_account3 == 0:
             self.start_user(client_name,value=None)
             self.start_user(client_name,value=2)
-        if activestatus == 0 and server_account1 == 1 and server_account2 == 1 and server_account3 == False or 0:
+        if activestatus == 0 and server_account1 == 1 and server_account2 == 1 and server_account3 == False or server_account3 == 0:
             self.stop_user(client_name,value=None)
             self.stop_user(client_name,value=2)
         if activestatus == 1 and server_account1 == 1 and server_account2 == 1 and server_account3 == 1:

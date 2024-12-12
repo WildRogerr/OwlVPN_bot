@@ -68,12 +68,12 @@ promotariffkeys = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 paykeys = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='💳 Оплатить', callback_data='pay')],
+    [InlineKeyboardButton(text='💳 Оплачено', callback_data='pay')],
     [InlineKeyboardButton(text='🔙', callback_data='choosetariff')]
 ])
 
 paykeyagain = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='💳 Оплатить', callback_data='pay')]
+    [InlineKeyboardButton(text='💳 Оплачено', callback_data='pay')]
 ])
 
 resumekey = InlineKeyboardMarkup(inline_keyboard=[
@@ -81,6 +81,6 @@ resumekey = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 paykey = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='💳 Оплатить', callback_data='pay2')],
+    [InlineKeyboardButton(text='💳 Оплачено', callback_data='pay2')],
     [InlineKeyboardButton(text='🔙', callback_data='mainchat')]
 ])
