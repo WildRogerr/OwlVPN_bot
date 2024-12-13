@@ -170,7 +170,7 @@ class Database():
         conn.commit()
         conn.close()
         logger = Logger()
-        data = f'User {userid}, set server accounts code = {code}.'
+        data = f'User {userid}, set server_accounts code = {code}.'
         logger.log(data) 
 
     def get_server_account1(self,userid):
@@ -220,7 +220,7 @@ class Database():
         conn.commit()
         conn.close()
         logger = Logger()
-        data = f'User {userid}, set active status = {code}.'
+        data = f'User {userid}, set active_status = {code}.'
         logger.log(data)
 
     def get_active_status(self,userid):

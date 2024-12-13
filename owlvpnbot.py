@@ -1,6 +1,6 @@
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery,InputMediaPhoto
 from aiogram.types.input_file import FSInputFile
 from functools import wraps
 import asyncio
@@ -94,18 +94,18 @@ class sheduler():
                 hour = await Data.databasemanager.get_hour()
                 next_month = await Data.databasemanager.get_next_month(user_id)
                 ban = await Data.databasemanager.get_ban(user_id)
-                if active_status == 1 and pay_day <= day_of_month and hour >= 12 and next_month != 1 and ban == 0:
+                if active_status == 1 and pay_day <= day_of_month and hour == 12 and next_month != 1 and ban == 0:
                     await Data.databasemanager.set_left_days(user_id,code=1)
                     end_day = await Data.databasemanager.three_days_counter()
                     await Data.databasemanager.set_end_day(user_id,end_day)
                     await bot.send_message(user_id, 'Добрый день! Сегодня день оплаты по вашему тарифу, пожалуйста оплатите следующий месяц с помощью кнопки "Произвести оплату".')
-                elif active_status == 1 and pay_day <= day_of_month and hour >= 12 and next_month != 1 and ban == 1:
+                elif active_status == 1 and pay_day <= day_of_month and hour == 12 and next_month != 1 and ban == 1:
                     await Data.databasemanager.set_left_days(user_id,code=1)
                     end_day = await Data.databasemanager.three_days_counter()
                     await Data.databasemanager.set_end_day(user_id,end_day)
-                elif active_status == 1 and pay_day <= day_of_month and hour >= 12 and next_month == 1 and ban == 0:
+                elif active_status == 1 and pay_day <= day_of_month and hour == 12 and next_month == 1 and ban == 0:
                     await Data.databasemanager.set_next_month_0(user_id)
-            time.sleep(600)
+            time.sleep(3600)
 
     async def countdown_shutdown():
         while True:    
@@ -120,7 +120,7 @@ class sheduler():
                         day_of_month = await Data.databasemanager.get_day_of_month()
                         hour = await Data.databasemanager.get_hour()
                         remaining_time = end_day - day_of_month
-                        if remaining_time <= 1 and remaining_time > 0 and hour >= 12:
+                        if remaining_time <= 1 and remaining_time > 0 and hour == 12:
                             await bot.send_message(user_id, 'Добрый день! У вас остался 1 день, чтоб осуществить оплату за следующий месяц, иначе ваш аккаунт будет деактивирован до осуществления оплаты. Пожалуйста оплатите следующий месяц с помощью кнопки "Произвести оплату".')
                         elif remaining_time <= 0 and hour >= 12:
                             await bot.send_message(user_id, 'Добрый день! Ваш аккаунт деактивирован до поступления средств. Оплатите следующий месяц с помощью кнопки "Произвести оплату" и аккаунт будет активирован вновь.')   
@@ -137,7 +137,7 @@ class sheduler():
                         day_of_month = await Data.databasemanager.get_day_of_month()
                         hour = await Data.databasemanager.get_hour()
                         remaining_time = end_day - day_of_month
-                        if remaining_time <= 0 and hour >= 12:
+                        if remaining_time <= 0 and hour == 12:
                             active_status = await Data.databasemanager.get_active_status(user_id)
                             client_name = await Data.databasemanager.get_client_name(user_id)
                             await Data.databasemanager.set_left_days(user_id,code=0)
@@ -145,7 +145,7 @@ class sheduler():
                             await Data.databasemanager.active_status(user_id,code=False)
                             await Data.servermanager.active_server_switch(user_id,client_name,active_status)
                         break
-            time.sleep(600)
+            time.sleep(3600)
 
 
 
@@ -168,13 +168,39 @@ async def start(message: Message):
     data = f"User {user_id}, {firstname} {lastname}, {username} strated bot."
     Data.logger.log(data)
 
-@dp.message(Command('help'))#do_later
+@dp.message(Command('help'))
 async def help(message: Message): 
     with open('./txt/help.txt','r',encoding="utf-8") as file:
         help = file.read()
+        image1 = FSInputFile('./img/AmneziaVPN_screen1.jpg')
+        image2 = FSInputFile('./img/AmneziaVPN_screen2.jpg')
+        image3 = FSInputFile('./img/AmneziaVPN_screen3.jpg')
+        image4 = FSInputFile('./img/AmneziaVPN_screen4.jpg')
+        image5 = FSInputFile('./img/AmneziaVPN_screen5.jpg')
+        image6 = FSInputFile('./img/AmneziaWG_screen1.jpg')
+        image7 = FSInputFile('./img/AmneziaWG_screen2.jpg')
+        image8 = FSInputFile('./img/AmneziaWG_screen3.jpg')
+        image9 = FSInputFile('./img/AmneziaWG_screen4.jpg')
+        media_group = [
+        InputMediaPhoto(media=image1, caption="Скриншот 1: Нажать кнопку"),
+        InputMediaPhoto(media=image2, caption="Скриншот 2: Загрузить скачанный конфигурационный файл"),
+        InputMediaPhoto(media=image3, caption="Скриншот 3: Нажать кнопку"),
+        InputMediaPhoto(media=image4, caption="Скриншот 4: Подключиться"),
+        InputMediaPhoto(media=image5, caption="Скриншот 5: Подключено!"),
+        ]
+        media_group2 = [
+        InputMediaPhoto(media=image6, caption="Скриншот 1: Нажать кнопку +"),
+        InputMediaPhoto(media=image7, caption="Скриншот 2: Загрузить скачанный конфигурационный файл"),
+        InputMediaPhoto(media=image8, caption="Скриншот 3: Щелкнуть переключатель"),
+        InputMediaPhoto(media=image9, caption="Скриншот 4: Подключено!"),
+        ]
         await message.answer(help, parse_mode='html')
+        await bot.send_media_group(chat_id=message.chat.id, media=media_group)
+        await bot.send_media_group(chat_id=message.chat.id, media=media_group2)
+        
+        
     
-@dp.message(Command('support'))#do_later
+@dp.message(Command('support'))
 async def support(message: Message): 
     await message.answer(f'Напишите ваш вопрос или опишите проблему по следующей ссылке: {LINKSUPPORT}. Прежде чем написать в поддержку посмотрите пожалуйста раздел "F.A.Q.", возможно там уже есть решение вашего вопроса.',parse_mode='html')
 
@@ -218,7 +244,7 @@ async def broadcast(message: Message):
             failed += 1
 
     await message.answer(f"Рассылка завершена.\nУспешно: {successful}, Не удалось: {failed}.")
-    data = f"Broadcast successful.\nSuccess: {successful}, Lose: {failed}."
+    data = f"Broadcast successful. Success: {successful}, Lose: {failed}."
     Data.logger.log(data)
 
 @dp.message(Command('delete_broadcast'))
@@ -442,8 +468,31 @@ async def text_handler4(message: Message):
                 print(f"Ошибка удаления: {e}")
         with open('./txt/help.txt','r',encoding="utf-8") as file:
             help = file.read()
+            image1 = FSInputFile('./img/AmneziaVPN_screen1.jpg')
+            image2 = FSInputFile('./img/AmneziaVPN_screen2.jpg')
+            image3 = FSInputFile('./img/AmneziaVPN_screen3.jpg')
+            image4 = FSInputFile('./img/AmneziaVPN_screen4.jpg')
+            image5 = FSInputFile('./img/AmneziaVPN_screen5.jpg')
+            image6 = FSInputFile('./img/AmneziaWG_screen1.jpg')
+            image7 = FSInputFile('./img/AmneziaWG_screen2.jpg')
+            image8 = FSInputFile('./img/AmneziaWG_screen3.jpg')
+            image9 = FSInputFile('./img/AmneziaWG_screen4.jpg')
+            media_group = [
+            InputMediaPhoto(media=image1, caption="Скриншот 1: Нажать кнопку"),
+            InputMediaPhoto(media=image2, caption="Скриншот 2: Загрузить скачанный конфигурационный файл"),
+            InputMediaPhoto(media=image3, caption="Скриншот 3: Нажать кнопку"),
+            InputMediaPhoto(media=image4, caption="Скриншот 4: Подключиться"),
+            InputMediaPhoto(media=image5, caption="Скриншот 5: Подключено!"),
+            ]
+            media_group2 = [
+            InputMediaPhoto(media=image6, caption="Скриншот 1: Нажать кнопку +"),
+            InputMediaPhoto(media=image7, caption="Скриншот 2: Загрузить скачанный конфигурационный файл"),
+            InputMediaPhoto(media=image8, caption="Скриншот 3: Щелкнуть переключатель"),
+            InputMediaPhoto(media=image9, caption="Скриншот 4: Подключено!"),
+            ]
             new_message = await message.answer(help, parse_mode='html')
-        Data.messages_to_delete[message.chat.id] = new_message.message_id
+            await bot.send_media_group(chat_id=message.chat.id, media=media_group)
+            await bot.send_media_group(chat_id=message.chat.id, media=media_group2)
     else:
         await message.delete()
         if message.chat.id in Data.messages_to_delete:
@@ -454,7 +503,7 @@ async def text_handler4(message: Message):
         new_message = await message.answer('Команда доступна только для авторизированных пользователей!')
         Data.messages_to_delete[message.chat.id] = new_message.message_id
 
-@dp.message(F.text == '💬 F.A.Q.')#do_later
+@dp.message(F.text == '💬 F.A.Q.')
 @check_ban_user_message(Data.databasemanager)
 async def text_handler5(message: Message):
     user_id = message.from_user.id
@@ -468,7 +517,6 @@ async def text_handler5(message: Message):
         with open('./txt/faq.txt','r',encoding="utf-8") as file:
             faq = file.read()
             new_message = await message.answer(faq, parse_mode='html')
-        Data.messages_to_delete[message.chat.id] = new_message.message_id
     else:
         await message.delete()
         if message.chat.id in Data.messages_to_delete:
@@ -479,7 +527,7 @@ async def text_handler5(message: Message):
         new_message = await message.answer('Команда доступна только для авторизированных пользователей!')
         Data.messages_to_delete[message.chat.id] = new_message.message_id
 
-@dp.message(F.text == '✉️ Написать обращение')#do_later
+@dp.message(F.text == '✉️ Написать обращение')
 @check_ban_user_message(Data.databasemanager)
 async def text_handler6(message: Message):
     user_id = message.from_user.id
