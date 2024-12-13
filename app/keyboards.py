@@ -13,7 +13,7 @@ mainkeyboard = ReplyKeyboardMarkup(keyboard=[
 
 adminkeyboard = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='⚙️ Получить файл конфигурации')],
-    [KeyboardButton(text='Выполнить рассылку сообщений всем пользователям ↗️')],
+    [KeyboardButton(text='Выполнить рассылку сообщений ↗️'),KeyboardButton(text='Банлист 🗑')],
     [KeyboardButton(text='❔ Помощь'),KeyboardButton(text='💬 F.A.Q.')],
     [KeyboardButton(text='✉️ Написать обращение')],
 ],
@@ -82,5 +82,9 @@ resumekey = InlineKeyboardMarkup(inline_keyboard=[
 
 paykey = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='💳 Оплачено', callback_data='pay2')],
+    [InlineKeyboardButton(text='🔙', callback_data='mainchat')]
+])
+
+backkey = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='🔙', callback_data='mainchat')]
 ])

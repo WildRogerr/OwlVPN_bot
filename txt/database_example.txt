@@ -3,14 +3,15 @@ CREATE TABLE botowluserskz(client_id  INTEGER PRIMARY KEY NOT NULL, userid INTEG
 
 botowluserskz
 client_id  userid   firstname lastname  username  promo  tariff  pay_day  left_days  end_day  next_month  client_name  active server_account1  server_account2  server_account3  banned
-1          12345    vasya     pup       durik     0      1       0        0	         0        0           clientowl_1  1      1				   1                                 0
+1          12345    vasya     pup       vasyan    0      1       0        0	         0        0           clientowl_1  1      1				   1                                 0
 
 
     # Написать:
-	# функция следующего месяца
-    # Функция бана
-    # Функции лога
+    # Прологировать весь проект
     # Доделать информационные функции
+	# Переименовать юзеров
 	
     # Написать программу для управления базой данных
+	# Занести всех юзеров в базу данных и сохранить отдельно
+	# Запустить на сервере
     # Тестить всё
