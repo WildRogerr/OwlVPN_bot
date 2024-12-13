@@ -2,7 +2,7 @@ import sqlite3
 import subprocess
 from datetime import date, datetime, timedelta
 
-class database():
+class Database():
 
     def adduser(self, userdata):
         userid = userdata[0]
@@ -37,6 +37,9 @@ class database():
                             (userid,firstname,lastname,username,pay_day,left_days,end_day,banned,client_check[0]))
                 conn.commit()
                 conn.close()
+                logger = Logger()
+                data = f'User {userid}, {firstname} {lastname}, {username} added to database.'
+                logger.log(data) 
                 return 1
             
             elif client_active_check[0] == 1 and client_userid_check:
@@ -68,7 +71,11 @@ class database():
             cur.execute(f'UPDATE botowluserskz SET client_name = ? WHERE client_id = ?', (client_name,client_id[0]))
             conn.commit()
             conn.close()
-            return 0        
+            logger = Logger()
+            data = f'User {userid}, {firstname} {lastname}, {username} added to database.'
+            logger.log(data)  
+            return 0
+                  
 
     def getusers(self):
         conn = sqlite3.connect('./owldatabase.db')
@@ -162,6 +169,9 @@ class database():
             cur.execute(f'UPDATE botowluserskz SET server_account2 = 2 WHERE userid = ?',(userid,))
         conn.commit()
         conn.close()
+        logger = Logger()
+        data = f'User {userid}, set server accounts code = {code}.'
+        logger.log(data) 
 
     def get_server_account1(self,userid):
         conn = sqlite3.connect('./owldatabase.db')
@@ -209,6 +219,9 @@ class database():
             cur.execute(f'UPDATE botowluserskz SET active = 0 WHERE userid = ?',(userid,))
         conn.commit()
         conn.close()
+        logger = Logger()
+        data = f'User {userid}, set active status = {code}.'
+        logger.log(data)
 
     def get_active_status(self,userid):
         conn = sqlite3.connect('./owldatabase.db')
@@ -230,6 +243,9 @@ class database():
             cur.execute(f'UPDATE botowluserskz SET pay_day = ? WHERE userid = ?',(day_of_month,userid))
         conn.commit()
         conn.close()
+        logger = Logger()
+        data = f'User {userid}, set pay_day = {day_of_month}.'
+        logger.log(data)
 
     def get_day_of_month(self):
         today = date.today()
@@ -265,6 +281,9 @@ class database():
             cur.execute(f'UPDATE botowluserskz SET left_days = 0 WHERE userid = ?',(userid,))
         conn.commit()
         conn.close()
+        logger = Logger()
+        data = f'User {userid}, set left_days = {code}.'
+        logger.log(data) 
 
     def get_left_days(self,userid):
         conn = sqlite3.connect('./owldatabase.db')
@@ -281,6 +300,9 @@ class database():
         cur.execute(f'UPDATE botowluserskz SET end_day = ? WHERE userid = ?',(end_day,userid))
         conn.commit()
         conn.close()
+        logger = Logger()
+        data = f'User {userid}, set end_day = {end_day}.'
+        logger.log(data) 
 
     def get_end_day(self,userid):
         conn = sqlite3.connect('./owldatabase.db')
@@ -297,6 +319,9 @@ class database():
         cur.execute(f'UPDATE botowluserskz SET next_month = 0 WHERE userid = ?',(userid,))
         conn.commit()
         conn.close()
+        logger = Logger()
+        data = f'User {userid}, set next_month = 0.'
+        logger.log(data)
     
     def get_next_month(self,userid):
         conn = sqlite3.connect('./owldatabase.db')
@@ -316,6 +341,9 @@ class database():
         if next_month_value == 0 and left_days == 0 and active_status == 1:
             cur.execute(f'UPDATE botowluserskz SET next_month = 1 WHERE userid = ?',(userid,))
             code = 2
+            logger = Logger()
+            data = f'User {userid}, set next_month = 1.'
+            logger.log(data)
         else:
             code = 1
         conn.commit()
@@ -340,10 +368,10 @@ class database():
 
 
 
-class managebot():
+class Managebot():
 
     def manage_server_accounts(self,userid,client_name,tariff):
-        databasemanager = database()
+        databasemanager = Database()
         server_account1 = databasemanager.get_server_account1(userid)
         server_account2 = databasemanager.get_server_account2(userid)
         server_account3 = databasemanager.get_server_account3(userid)
@@ -408,23 +436,35 @@ class managebot():
         elif (tariff == 3 or tariff == 5) and server_account1 == 1 and server_account2 == 0 and server_account3 == 0:
             databasemanager.server_accounts(userid,code=2)
             databasemanager.server_accounts(userid,code=3)
+        logger = Logger()
+        data = f'User {userid}, run function manage_server_accounts.'
+        logger.log(data)
 
     def create_server_account(self,client_name,value):
         command = f'source /home/vpnserver/awgm && generate_config "{client_name}{value}"'
         subprocess.run(command, shell=True, capture_output=True, text=True)
         command = f'source /home/vpnserver/awgm && copy_config_files "{client_name}{value}"'
         subprocess.run(command, shell=True, capture_output=True, text=True)
+        logger = Logger()
+        data = f'User {client_name}{value}, run function create_server_account.'
+        logger.log(data)
     
     def stop_user(self,client_name,value):
         command = f'source /home/vpnserver/awgm && stop_config "{client_name}{value}"'
         subprocess.run(command, shell=True, capture_output=True, text=True)
+        logger = Logger()
+        data = f'User {client_name}{value}, run function stop_user.'
+        logger.log(data)
 
     def start_user(self,client_name,value):
         command = f'source /home/vpnserver/awgm && start_config "{client_name}{value}"'
         subprocess.run(command, shell=True, capture_output=True, text=True)
+        logger = Logger()
+        data = f'User {client_name}{value}, run function start_user.'
+        logger.log(data)
 
     def active_server_switch(self,userid,client_name,old_active_status):
-        databasemanager = database()
+        databasemanager = Database()
         server_account1 = databasemanager.get_server_account1(userid)
         server_account2 = databasemanager.get_server_account2(userid)
         server_account3 = databasemanager.get_server_account3(userid)
@@ -494,17 +534,20 @@ class managebot():
             self.stop_user(client_name,value=None)
             self.stop_user(client_name,value=2)
             self.stop_user(client_name,value=3)
+        logger = Logger()
+        data = f'User {userid}, {client_name}, run function active_server_switch with active_status = {activestatus}.'
+        logger.log(data)
         
     
     
-    class Logger:
+class Logger():
 
-        def log(self, data):
-            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            if not isinstance(data, str):
-                data = str(data)
-            try:
-                with open('./log.txt', 'a', encoding="utf-8") as file:
-                    file.write(f'{now}: {data}\n')
-            except Exception as e:
-                print(f"Ошибка записи лога: {e}")
+    def log(self, data):
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        if not isinstance(data, str):
+            data = str(data)
+        try:
+            with open('./log.txt', 'a', encoding="utf-8") as file:
+                file.write(f'{now}: {data}\n')
+        except Exception as e:
+            print(f"Ошибка записи лога: {e}")

@@ -7,7 +7,6 @@ client_id  userid   firstname lastname  username  promo  tariff  pay_day  left_d
 
 
     # Написать:
-    # Прологировать весь проект
     # Доделать информационные функции
 	# Переименовать юзеров
 	
