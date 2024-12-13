@@ -67,7 +67,7 @@ class Database():
             conn.commit()
             cur.execute(f'SELECT client_id FROM botowluserskz WHERE username = ?',(username,))
             client_id = cur.fetchone()
-            client_name = f'client_owl_{client_id[0]}.{username}'
+            client_name = f'client_owl_{client_id[0]}.{userid}.{username}'
             cur.execute(f'UPDATE botowluserskz SET client_name = ? WHERE client_id = ?', (client_name,client_id[0]))
             conn.commit()
             conn.close()
@@ -376,18 +376,18 @@ class Managebot():
         server_account2 = databasemanager.get_server_account2(userid)
         server_account3 = databasemanager.get_server_account3(userid)
         if tariff == 1 and server_account1 == False and server_account2 == False and server_account3 == False:
-            self.create_server_account(client_name,value=None)
-            self.stop_user(client_name,value=None)
+            self.create_server_account(client_name,value=1)
+            self.stop_user(client_name,value=1)
         elif (tariff == 2 or tariff == 4) and server_account1 == False and server_account2 == False and server_account3 == False:
-            self.create_server_account(client_name,value=None)
+            self.create_server_account(client_name,value=1)
             self.create_server_account(client_name,value=2)
-            self.stop_user(client_name,value=None)
+            self.stop_user(client_name,value=1)
             self.stop_user(client_name,value=2)
         elif (tariff == 3 or tariff == 5) and server_account1 == False and server_account2 == False and server_account3 == False:
-            self.create_server_account(client_name,value=None)
+            self.create_server_account(client_name,value=1)
             self.create_server_account(client_name,value=2)
             self.create_server_account(client_name,value=3)
-            self.stop_user(client_name,value=None)
+            self.stop_user(client_name,value=1)
             self.stop_user(client_name,value=2)
             self.stop_user(client_name,value=3)
         elif tariff == 1 and server_account1 == 1 and server_account2 == False and server_account3 == False:
@@ -470,18 +470,18 @@ class Managebot():
         server_account3 = databasemanager.get_server_account3(userid)
         activestatus = databasemanager.get_active_status(userid)
         if activestatus == 1 and server_account1 == 1 and (server_account2 == False or server_account2 == 2) and (server_account3 == False or server_account3 == 2)  and old_active_status == 0:
-            self.start_user(client_name,value=None)
+            self.start_user(client_name,value=1)
         elif activestatus == 1 and server_account1 == 1 and (server_account2 == False or server_account2 == 2) and (server_account3 == False or server_account3 == 2) and old_active_status == 1:
             pass
         elif activestatus == 1 and server_account1 == 1 and server_account2 == 0 and (server_account3 == False or server_account3 == 2)  and old_active_status == 0:
-            self.start_user(client_name,value=None)
+            self.start_user(client_name,value=1)
             self.stop_user(client_name,value=2)
             databasemanager.server_accounts(userid,code=8)
         elif activestatus == 1 and server_account1 == 1 and server_account2 == 0 and (server_account3 == False or server_account3 == 2)  and old_active_status == 1:
             self.stop_user(client_name,value=2)
             databasemanager.server_accounts(userid,code=8)
         elif activestatus == 1 and server_account1 == 1 and server_account2 == 0 and server_account3 == 0 and old_active_status == 0:
-            self.start_user(client_name,value=None)
+            self.start_user(client_name,value=1)
             self.stop_user(client_name,value=2)
             self.stop_user(client_name,value=3)
             databasemanager.server_accounts(userid,code=8)
@@ -492,12 +492,12 @@ class Managebot():
             databasemanager.server_accounts(userid,code=8)
             databasemanager.server_accounts(userid,code=9)
         elif activestatus == 1 and server_account1 == 1 and server_account2 == 1 and (server_account3 == False or server_account3 == 2) and old_active_status == 0:
-            self.start_user(client_name,value=None)
+            self.start_user(client_name,value=1)
             self.start_user(client_name,value=2)
         elif activestatus == 1 and server_account1 == 1 and server_account2 == 1 and (server_account3 == False or server_account3 == 2) and old_active_status == 1:
             pass
         elif activestatus == 1 and server_account1 == 1 and server_account2 == 1 and server_account3 == 0 and old_active_status == 0:
-            self.start_user(client_name,value=None)
+            self.start_user(client_name,value=1)
             self.start_user(client_name,value=2)
             self.stop_user(client_name,value=3)
             databasemanager.server_accounts(userid,code=9)
@@ -505,33 +505,33 @@ class Managebot():
             self.stop_user(client_name,value=3)
             databasemanager.server_accounts(userid,code=9)
         elif activestatus == 1 and server_account1 == 1 and server_account2 == 1 and server_account3 == 1 and old_active_status == 0:
-            self.start_user(client_name,value=None)
+            self.start_user(client_name,value=1)
             self.start_user(client_name,value=2)
             self.start_user(client_name,value=3)
         elif activestatus == 1 and server_account1 == 1 and server_account2 == 1 and server_account3 == 1 and old_active_status == 1:
             pass
         elif activestatus == 0 and server_account1 == 1 and (server_account2 == False or server_account2 == 2) and (server_account3 == False or server_account3 == 2) and old_active_status == 1:
-            self.stop_user(client_name,value=None)
+            self.stop_user(client_name,value=1)
         elif activestatus == 0 and server_account1 == 1 and server_account2 == 0 and (server_account3 == False or server_account3 == 2) and old_active_status == 1:
-            self.stop_user(client_name,value=None)
+            self.stop_user(client_name,value=1)
             self.stop_user(client_name,value=2)
             databasemanager.server_accounts(userid,code=8)
         elif activestatus == 0 and server_account1 == 1 and server_account2 == 0 and server_account3 == 0 and old_active_status == 1:
-            self.stop_user(client_name,value=None)
+            self.stop_user(client_name,value=1)
             self.stop_user(client_name,value=2)
             self.stop_user(client_name,value=3)
             databasemanager.server_accounts(userid,code=8)
             databasemanager.server_accounts(userid,code=9)
         elif activestatus == 0 and server_account1 == 1 and server_account2 == 1 and (server_account3 == False or server_account3 == 2) and old_active_status == 1:
-            self.stop_user(client_name,value=None)
+            self.stop_user(client_name,value=1)
             self.stop_user(client_name,value=2)
         elif activestatus == 0 and server_account1 == 1 and server_account2 == 1 and server_account3 == 0 and old_active_status == 1:
-            self.stop_user(client_name,value=None)
+            self.stop_user(client_name,value=1)
             self.stop_user(client_name,value=2)
             self.stop_user(client_name,value=3)
             databasemanager.server_accounts(userid,code=9)
         elif activestatus == 0 and server_account1 == 1 and server_account2 == 1 and server_account3 == 1 and old_active_status == 1:
-            self.stop_user(client_name,value=None)
+            self.stop_user(client_name,value=1)
             self.stop_user(client_name,value=2)
             self.stop_user(client_name,value=3)
         logger = Logger()
